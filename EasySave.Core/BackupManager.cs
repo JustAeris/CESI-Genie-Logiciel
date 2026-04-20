@@ -7,8 +7,10 @@ public class BackupManager
         throw new NotImplementedException();
     }
 
-    private IBackupStrategy GetStrategy(BackupType type)
+    private IBackupStrategy GetStrategy(BackupType type) => type switch
     {
-        throw new NotImplementedException();
-    }
+        BackupType.Full         => new FullBackup(),
+        BackupType.Differential => new DifferentialBackup(),
+        _                       => throw new ArgumentOutOfRangeException()
+    };
 }
