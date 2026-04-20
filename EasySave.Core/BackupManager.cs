@@ -9,8 +9,8 @@ public class BackupManager
 
     private IBackupStrategy GetStrategy(BackupType type) => type switch
     {
-        BackupType.Full         => new FullBackup(),
+        BackupType.Full => new FullBackup(),
         BackupType.Differential => new DifferentialBackup(),
-        _                       => throw new ArgumentOutOfRangeException()
+        _ => throw new ArgumentOutOfRangeException()
     };
 }
