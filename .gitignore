@@ -361,3 +361,42 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+## --- JetBrains Rider ---
+.idea/
+*.sln.iml
+# Optionnel : Ignorer les dictionnaires et étagères de tâches
+.idea/dictionaries
+.idea/shelf
+
+## --- .NET Build Outputs ---
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+
+## --- User-specific files ---
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+
+## --- Rider/Resharper Specifics ---
+_ReSharper*/
+*.[Rr]e[Ss]harper.user
+*.DotSettings.user
+
+## --- OS specific files ---
+.DS_Store
+Thumbs.db
+
+## --- Packages ---
+*.nupkg
+# Dossier de restauration des paquets (si vous n'utilisez pas le cache global)
+packages/
+# Sauf si vous voulez versionner les fichiers de lock de NuGet
+!packages/build/
