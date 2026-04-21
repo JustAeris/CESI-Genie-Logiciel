@@ -12,13 +12,13 @@ namespace EasySave.Core
         private string _configPath = "config.json";
         public List<BackupJob> Jobs { get; private set; } = new List<BackupJob>();
 
-        // Constructeur privé (Singleton)
+        // private  Constructor 
         private ConfigManager()
         {
             Load();
         }
 
-        // Instance unique
+        // Unique instance
         public static ConfigManager Instance
         {
             get
@@ -32,7 +32,7 @@ namespace EasySave.Core
             }
         }
 
-        // Charge les jobs depuis le fichier JSON
+        // Load jobs from JSON file
         public void Load()
         {
             if (File.Exists(_configPath))
@@ -42,7 +42,7 @@ namespace EasySave.Core
             }
         }
 
-        // Sauvegarde les jobs dans le fichier JSON
+        // Save jobs to JSON file
         public void Save()
         {
             string json = JsonSerializer.Serialize(Jobs, new JsonSerializerOptions { WriteIndented = true });
