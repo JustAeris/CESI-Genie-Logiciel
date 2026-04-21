@@ -41,7 +41,7 @@ public class ConsoleMenu
             case "4": RunAll(); break;
             case "5": ChangeLanguage(); break;
             case "6": return true;
-            default:  System.Console.WriteLine(Resources.Get("error.invalid")); break;
+            default: System.Console.WriteLine(Resources.Get("error.invalid")); break;
         }
         return false;
     }
@@ -146,9 +146,9 @@ public class ConsoleMenu
         ];
 
         int inner = easy.Concat(save).Max(l => l.Length) + 4;
-        string top    = "╔" + new string('═', inner) + "╗";
+        string top = "╔" + new string('═', inner) + "╗";
         string bottom = "╚" + new string('═', inner) + "╝";
-        string blank  = "║" + new string(' ', inner) + "║";
+        string blank = "║" + new string(' ', inner) + "║";
 
         void PrintLine(string text, ConsoleColor color)
         {
@@ -161,7 +161,7 @@ public class ConsoleMenu
             System.Console.WriteLine("║");
         }
 
-        string cesi = "[ CESI • v1.0 ]";
+        string cesi = "[ CESI • v1.0 ] ";
         int lp = (inner - cesi.Length) / 2;
         string cesiPadded = new string(' ', lp) + cesi + new string(' ', inner - cesi.Length - lp);
 
