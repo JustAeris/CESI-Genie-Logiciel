@@ -1,9 +1,15 @@
 namespace EasySave.Console;
 
+/// <summary>Supported UI languages.</summary>
 public enum Language { EN, FR }
 
+/// <summary>
+/// Provides localised UI strings for EN and FR.
+/// Use <see cref="Get"/> to retrieve a string by key for the active language.
+/// </summary>
 public static class Resources
 {
+    /// <summary>Gets or sets the active language. Defaults to English.</summary>
     public static Language Current { get; set; } = Language.EN;
 
     private static readonly Dictionary<string, Dictionary<Language, string>> _strings = new()
@@ -29,6 +35,10 @@ public static class Resources
         ["lang.choice"]   = new() { [Language.EN] = "Language (EN/FR): ",          [Language.FR] = "Langue (EN/FR) : " },
     };
 
+    /// <summary>
+    /// Returns the localised string for <paramref name="key"/> in the active language.
+    /// Falls back to the key itself if not found.
+    /// </summary>
     public static string Get(string key) =>
         _strings.TryGetValue(key, out var map) && map.TryGetValue(Current, out var val)
             ? val

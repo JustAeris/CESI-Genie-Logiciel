@@ -2,14 +2,20 @@ using EasySave.Core;
 
 namespace EasySave.Console;
 
+/// <summary>
+/// Interactive console menu that drives the EasySave application.
+/// </summary>
 public class ConsoleMenu
 {
+    /// <summary>
+    /// Displays the main menu in a loop until the user chooses to exit.
+    /// </summary>
     public void Show()
     {
+        PrintBanner();
         while (true)
         {
             System.Console.WriteLine();
-            System.Console.WriteLine(Resources.Get("menu.title"));
             System.Console.WriteLine(Resources.Get("menu.list"));
             System.Console.WriteLine(Resources.Get("menu.add"));
             System.Console.WriteLine(Resources.Get("menu.run"));
@@ -40,6 +46,7 @@ public class ConsoleMenu
         return false;
     }
 
+    /// <summary>Lists all configured backup jobs to the console.</summary>
     private void DisplayJobs()
     {
         var jobs = ConfigManager.Instance.Jobs;
@@ -56,6 +63,7 @@ public class ConsoleMenu
         }
     }
 
+    /// <summary>Prompts the user for job details and adds a new backup job (max 5).</summary>
     private void AddJob()
     {
         if (ConfigManager.Instance.Jobs.Count >= 5)
@@ -85,6 +93,7 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.added"));
     }
 
+    /// <summary>Prompts the user to select a job by index and runs it.</summary>
     private void RunJob()
     {
         DisplayJobs();
@@ -102,6 +111,7 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.done"));
     }
 
+    /// <summary>Runs all configured backup jobs sequentially.</summary>
     private void RunAll()
     {
         if (ConfigManager.Instance.Jobs.Count == 0)
@@ -113,6 +123,66 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.done"));
     }
 
+    /// <summary>Prints the ASCII art banner once at startup.</summary>
+    private static void PrintBanner()
+    {
+        string[] easy =
+        [
+            "███████╗ █████╗ ███████╗██╗   ██╗",
+            "██╔════╝██╔══██╗██╔════╝╚██╗ ██╔╝",
+            "█████╗  ███████║███████╗ ╚████╔╝ ",
+            "██╔══╝  ██╔══██║╚════██║  ╚██╔╝  ",
+            "███████╗██║  ██║███████║   ██║   ",
+            "╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ",
+        ];
+        string[] save =
+        [
+            "███████╗ █████╗ ██╗   ██╗███████╗",
+            "██╔════╝██╔══██╗██║   ██║██╔════╝",
+            "███████╗███████║██║   ██║█████╗  ",
+            "╚════██║██╔══██║╚██╗ ██╔╝██╔══╝  ",
+            "███████║██║  ██║ ╚████╔╝ ███████╗",
+            "╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝",
+        ];
+
+        int inner = easy.Concat(save).Max(l => l.Length) + 4;
+        string top    = "╔" + new string('═', inner) + "╗";
+        string bottom = "╚" + new string('═', inner) + "╝";
+        string blank  = "║" + new string(' ', inner) + "║";
+
+        void PrintLine(string text, ConsoleColor color)
+        {
+            string padded = "  " + text.PadRight(inner - 2);
+            System.Console.ForegroundColor = ConsoleColor.White;
+            System.Console.Write("║");
+            System.Console.ForegroundColor = color;
+            System.Console.Write(padded);
+            System.Console.ForegroundColor = ConsoleColor.White;
+            System.Console.WriteLine("║");
+        }
+
+        string cesi = "[ CESI • v1.0 ]";
+        int lp = (inner - cesi.Length) / 2;
+        string cesiPadded = new string(' ', lp) + cesi + new string(' ', inner - cesi.Length - lp);
+
+        System.Console.ForegroundColor = ConsoleColor.White;
+        System.Console.WriteLine(top);
+        System.Console.WriteLine(blank);
+        foreach (var l in easy) PrintLine(l, ConsoleColor.Green);
+        System.Console.WriteLine(blank);
+        foreach (var l in save) PrintLine(l, ConsoleColor.Red);
+        System.Console.WriteLine(blank);
+        System.Console.Write("║");
+        System.Console.ForegroundColor = ConsoleColor.Yellow;
+        System.Console.Write(cesiPadded);
+        System.Console.ForegroundColor = ConsoleColor.White;
+        System.Console.WriteLine("║");
+        System.Console.WriteLine(blank);
+        System.Console.WriteLine(bottom);
+        System.Console.ResetColor();
+    }
+
+    /// <summary>Prompts the user to switch the UI language (EN/FR).</summary>
     private void ChangeLanguage()
     {
         System.Console.Write(Resources.Get("lang.choice"));

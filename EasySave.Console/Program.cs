@@ -1,3 +1,5 @@
+// Entry point: loads config, registers jobs, then either runs jobs from CLI args
+// or launches the interactive console menu.
 using EasySave.Console;
 using EasySave.Core;
 
@@ -17,6 +19,10 @@ else
     new ConsoleMenu().Show();
 }
 
+/// <summary>
+/// Parses the first CLI argument into job indices.
+/// Returns an empty array if no argument is provided or parsing fails.
+/// </summary>
 static int[] ParseArgs(string[] arguments)
 {
     if (arguments.Length == 0) return [];

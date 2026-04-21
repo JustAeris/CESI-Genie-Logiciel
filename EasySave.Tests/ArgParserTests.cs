@@ -2,6 +2,10 @@ using EasySave.Console;
 
 namespace EasySave.Tests;
 
+/// <summary>
+/// Unit tests for <see cref="ArgParser.Parse"/>.
+/// Covers range syntax (1-3), list syntax (1;3), and single values.
+/// </summary>
 public class ArgParserTests
 {
     [Fact]

@@ -1,5 +1,8 @@
 namespace EasySave.Console;
 
+/// <summary>
+/// Parses command-line job-selection arguments into arrays of job indices.
+/// </summary>
 public static class ArgParser
 {
     /// <summary>
