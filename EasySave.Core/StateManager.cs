@@ -8,7 +8,6 @@ public class StateManager
     private static readonly Lazy<StateManager> _instance = new(() => new StateManager());
     public static StateManager Instance => _instance.Value;
     private StateManager() { }
-
     // Store all backup states
     private List<BackupState> _states = new List<BackupState>();
 
