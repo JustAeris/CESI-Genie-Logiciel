@@ -68,4 +68,12 @@ public class Logger
     /// <summary>Writes <paramref name="json"/> to today's log file, overwriting existing content.</summary>
     private void WriteToFile(string json) =>
         File.WriteAllText(GetLogFilePath(), json);
+namespace EasyLog;
+
+public class Logger
+{
+    private static readonly Lazy<Logger> _instance = new(() => new Logger());
+    public static Logger Instance => _instance.Value;
+
+    public void Log(LogEntry entry) { }
 }

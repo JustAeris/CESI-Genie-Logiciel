@@ -25,4 +25,14 @@ public class LogEntry
     /// <summary>Timestamp of the transfer (format: yyyy-MM-dd HH:mm:ss).</summary>
     [JsonPropertyName("time")]
     public string Timestamp { get; set; } = "";
+namespace EasyLog;
+
+public class LogEntry
+{
+    public string Name { get; set; } = "";
+    public string SourcePath { get; set; } = "";
+    public string TargetPath { get; set; } = "";
+    public long FileSize { get; set; }
+    public long TransferTimeMs { get; set; }
+    public DateTime Timestamp { get; set; }
 }
