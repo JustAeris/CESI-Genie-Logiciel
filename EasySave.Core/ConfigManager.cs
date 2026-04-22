@@ -5,7 +5,7 @@ namespace EasySave.Core
     public class ConfigManager
     {
         // Singleton
-        private static ConfigManager _instance;
+        private static ConfigManager? _instance;
         private static readonly object _lock = new object();
 
         // Attributs
