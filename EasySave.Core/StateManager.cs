@@ -14,13 +14,7 @@ public class StateManager
     // Update or add a state
     public void Update(BackupState state)
     {
-        var existing = _states.FirstOrDefault(s => s.Name == state.Name);
-        if (existing != null)
-        {
-            int index = _states.IndexOf(existing);
-            if (index >= 0)
-                _states.RemoveAt(index);
-        }
+        _states.RemoveAll(s => s.Name == state.Name);
         _states.Add(state);
         Persist();
     }
