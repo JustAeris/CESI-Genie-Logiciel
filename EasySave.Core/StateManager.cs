@@ -16,7 +16,11 @@ public class StateManager
     {
         var existing = _states.FirstOrDefault(s => s.Name == state.Name);
         if (existing != null)
-            _states.Remove(existing);
+        {
+            int index = _states.IndexOf(existing);
+            if (index >= 0)
+                _states.RemoveAt(index);
+        }
         _states.Add(state);
         Persist();
     }
