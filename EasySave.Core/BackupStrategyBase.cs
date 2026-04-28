@@ -29,11 +29,11 @@ public abstract class BackupStrategyBase
         var entry = new LogEntry
         {
             Name = state.Name,
-            SourcePath = src,
-            TargetPath = dst,
+            FileSource = src,
+            FileTarget = dst,
             FileSize = new FileInfo(src).Length,
-            TransferTimeMs = sw.ElapsedMilliseconds,
-            Timestamp = state.Timestamp
+            FileTransferTime = sw.ElapsedMilliseconds,
+            Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
         Logger.Instance.Log(entry);
 

@@ -2,64 +2,40 @@ namespace EasySave.Core;
 
 public class BackupManager
 {
-    // Singleton
-    private static BackupManager? _instance;
-    private static readonly object _lock = new object();
+    private static readonly Lazy<BackupManager> _instance = new(() => new BackupManager());
+    public static BackupManager Instance => _instance.Value;
 
-    // Attributes
-    private List<BackupJob> _jobs = new List<BackupJob>();
+    private readonly List<BackupJob> _jobs = [];
 
-    // Private constructor
-    private BackupManager() { }
+    public void AddJob(BackupJob job) => _jobs.Add(job);
 
-    // Unique instance
-    public static BackupManager Instance
-    {
-        get
-        {
-            lock (_lock)
-            {
-                if (_instance == null)
-                    _instance = new BackupManager();
-                return _instance;
-            }
-        }
-    }
-
-    // Add a job (max 5)
-    public void AddJob(BackupJob job)
-    {
-        if (_jobs.Count < 5)
-            _jobs.Add(job);
-    }
-
-    // Remove a job by index
     public void RemoveJob(int index)
     {
-        if (index >= 0 && index < _jobs.Count)
-            _jobs.RemoveAt(index);
+        if (index < 1 || index > _jobs.Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        _jobs.RemoveAt(index - 1);
     }
 
-    // Run a specific job by index
     public void RunJob(int index)
     {
-        if (index >= 0 && index < _jobs.Count)
-        {
-            var job = _jobs[index];
-            var state = new BackupState { Name = job.Name };
-            var strategy = GetStrategy(job.Type);
-            strategy.Execute(job, state);
-        }
+        if (index < 1 || index > _jobs.Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        RunJob(_jobs[index - 1]);
     }
 
-    // Run all jobs
     public void RunAll()
     {
-        for (int i = 0; i < _jobs.Count; i++)
-            RunJob(i);
+        foreach (var job in _jobs)
+            RunJob(job);
     }
 
-    // Ce qui était déjà là - on ne touche pas
+    private void RunJob(BackupJob job)
+    {
+        var strategy = GetStrategy(job.Type);
+        var state = new BackupState { Name = job.Name };
+        strategy.Execute(job, state);
+    }
+
     private IBackupStrategy GetStrategy(BackupType type) => type switch
     {
         BackupType.Full => new FullBackup(),
