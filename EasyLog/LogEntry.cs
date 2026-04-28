@@ -25,4 +25,7 @@ public class LogEntry
     /// <summary>Timestamp of the transfer (format: yyyy-MM-dd HH:mm:ss).</summary>
     [JsonPropertyName("time")]
     public string Timestamp { get; set; } = "";
+
+    /// <summary>Encryption duration in ms. 0 = no encryption, &gt;0 = success, &lt;0 = error.</summary>
+    public long EncryptionTime { get; set; }
 }
