@@ -30,7 +30,6 @@ public static class Resources
         ["job.added"] = new() { [Language.EN] = "Job added.", [Language.FR] = "Travail ajouté." },
         ["job.done"] = new() { [Language.EN] = "Done.", [Language.FR] = "Terminé." },
         ["job.none"] = new() { [Language.EN] = "No jobs configured.", [Language.FR] = "Aucun travail configuré." },
-        ["job.max"] = new() { [Language.EN] = "Maximum 5 jobs reached.", [Language.FR] = "Maximum 5 travaux atteint." },
         ["error.invalid"] = new() { [Language.EN] = "Invalid input.", [Language.FR] = "Entrée invalide." },
         ["lang.choice"] = new() { [Language.EN] = "Language (EN/FR): ", [Language.FR] = "Langue (EN/FR) : " },
         ["menu.settings"] = new() { [Language.EN] = "6. Settings", [Language.FR] = "6. Paramètres" },
