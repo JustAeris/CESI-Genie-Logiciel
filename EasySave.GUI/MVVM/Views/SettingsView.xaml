@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="EasySave.GUI.MVVM.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EasySave.GUI.MVVM.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0" Text="Paramètres" FontSize="22"
+                   FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- Format des logs -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+            <TextBlock Text="Format des journaux" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <ComboBox ItemsSource="{Binding LogFormats}"
+                      SelectedItem="{Binding SelectedLogFormat}"
+                      Width="150" HorizontalAlignment="Left"/>
+        </StackPanel>
+
+        <!-- Logiciel métier -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+            <TextBlock Text="Logiciel métier" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <TextBox Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"
+                     Width="250" HorizontalAlignment="Left"/>
+        </StackPanel>
+
+        <!-- Extensions à crypter -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,15">
+            <TextBlock Text="Extensions à crypter" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBox Text="{Binding NewExtension, UpdateSourceTrigger=PropertyChanged}"
+                         Width="100" Margin="0,0,10,0"/>
+                <Button Content="+ Ajouter" Command="{Binding AddExtensionCommand}" Padding="10,4"/>
+            </StackPanel>
+            <ListBox ItemsSource="{Binding EncryptedExtensions}" Height="100">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding}" Margin="0,0,10,0"/>
+                            <Button Content="✕" Command="{Binding DataContext.RemoveExtensionCommand,
+                                    RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}" Padding="4,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <!-- Bouton Sauvegarder -->
+        <Button Grid.Row="4" Content="Sauvegarder" Command="{Binding SaveCommand}"
+                Width="120" HorizontalAlignment="Left" Padding="15,8"/>
+    </Grid>
+</UserControl>

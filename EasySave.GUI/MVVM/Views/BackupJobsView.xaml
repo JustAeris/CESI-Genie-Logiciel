@@ -1,0 +1,48 @@
+﻿<UserControl x:Class="EasySave.GUI.MVVM.Views.BackupJobsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EasySave.GUI.MVVM.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0" Text="Sauvegardes" FontSize="22"
+                   FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <!-- Liste des jobs -->
+        <ListBox Grid.Row="1" ItemsSource="{Binding Jobs}"
+                 SelectedItem="{Binding SelectedJob}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="5">
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding SourceDir}" Foreground="Gray" FontSize="11"/>
+                        <ProgressBar Value="{Binding Progression}" Maximum="100"
+                                     Height="6" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Boutons Lancer / Lancer tout -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,10">
+            <Button Content="▶ Lancer" Command="{Binding RunJobCommand}"
+                    Padding="15,8" Margin="0,0,10,0"/>
+            <Button Content="▶▶ Lancer tout" Command="{Binding RunAllCommand}"
+                    Padding="15,8" Margin="0,0,10,0"/>
+            <Button Content="+ Ajouter" Command="{Binding AddJobCommand}"
+                    Padding="15,8" Margin="0,0,10,0"/>
+            <Button Content="🗑 Supprimer" Command="{Binding RemoveJobCommand}"
+                    Padding="15,8"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
