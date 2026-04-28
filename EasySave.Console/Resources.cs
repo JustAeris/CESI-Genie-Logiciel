@@ -20,7 +20,7 @@ public static class Resources
         ["menu.run"] = new() { [Language.EN] = "3. Run a job", [Language.FR] = "3. Lancer un travail" },
         ["menu.runall"] = new() { [Language.EN] = "4. Run all jobs", [Language.FR] = "4. Lancer tous les travaux" },
         ["menu.language"] = new() { [Language.EN] = "5. Change language", [Language.FR] = "5. Changer de langue" },
-        ["menu.exit"] = new() { [Language.EN] = "6. Exit", [Language.FR] = "6. Quitter" },
+        ["menu.exit"] = new() { [Language.EN] = "7. Exit", [Language.FR] = "7. Quitter" },
         ["menu.choice"] = new() { [Language.EN] = "Your choice: ", [Language.FR] = "Votre choix : " },
         ["job.name"] = new() { [Language.EN] = "Job name: ", [Language.FR] = "Nom du travail : " },
         ["job.source"] = new() { [Language.EN] = "Source directory: ", [Language.FR] = "Répertoire source : " },
@@ -33,6 +33,12 @@ public static class Resources
         ["job.max"] = new() { [Language.EN] = "Maximum 5 jobs reached.", [Language.FR] = "Maximum 5 travaux atteint." },
         ["error.invalid"] = new() { [Language.EN] = "Invalid input.", [Language.FR] = "Entrée invalide." },
         ["lang.choice"] = new() { [Language.EN] = "Language (EN/FR): ", [Language.FR] = "Langue (EN/FR) : " },
+        ["menu.settings"] = new() { [Language.EN] = "6. Settings", [Language.FR] = "6. Paramètres" },
+        ["settings.title"] = new() { [Language.EN] = "=== Settings ===", [Language.FR] = "=== Paramètres ===" },
+        ["settings.format"] = new() { [Language.EN] = "Log format", [Language.FR] = "Format du log" },
+        ["settings.format.choose"] = new() { [Language.EN] = "Choose format (json/xml): ", [Language.FR] = "Choisir le format (json/xml) : " },
+        ["settings.format.updated"] = new() { [Language.EN] = "Log format updated.", [Language.FR] = "Format du log mis à jour." },
+        ["settings.format.invalid"] = new() { [Language.EN] = "Invalid format. Use 'json' or 'xml'.", [Language.FR] = "Format invalide. Utilisez 'json' ou 'xml'." },
     };
 
     /// <summary>
