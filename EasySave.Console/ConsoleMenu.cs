@@ -1,3 +1,4 @@
+using EasyLog;
 using EasySave.Core;
 
 namespace EasySave.Console;
@@ -7,9 +8,6 @@ namespace EasySave.Console;
 /// </summary>
 public class ConsoleMenu
 {
-    /// <summary>
-    /// Displays the main menu in a loop until the user chooses to exit.
-    /// </summary>
     public void Show()
     {
         PrintBanner();
@@ -21,6 +19,7 @@ public class ConsoleMenu
             System.Console.WriteLine(Resources.Get("menu.run"));
             System.Console.WriteLine(Resources.Get("menu.runall"));
             System.Console.WriteLine(Resources.Get("menu.language"));
+            System.Console.WriteLine(Resources.Get("menu.settings"));
             System.Console.WriteLine(Resources.Get("menu.exit"));
             System.Console.Write(Resources.Get("menu.choice"));
 
@@ -40,13 +39,13 @@ public class ConsoleMenu
             case "3": RunJob(); break;
             case "4": RunAll(); break;
             case "5": ChangeLanguage(); break;
-            case "6": return true;
+            case "6": ShowSettings(); break;
+            case "7": return true;
             default: System.Console.WriteLine(Resources.Get("error.invalid")); break;
         }
         return false;
     }
 
-    /// <summary>Lists all configured backup jobs to the console.</summary>
     private void DisplayJobs()
     {
         var jobs = ConfigManager.Instance.Jobs;
@@ -58,20 +57,12 @@ public class ConsoleMenu
         for (int i = 0; i < jobs.Count; i++)
         {
             var j = jobs[i];
-            System.Console.WriteLine(
-                $"  {i + 1}. [{j.Type}] {j.Name}  {j.SourceDir} -> {j.TargetDir}");
+            System.Console.WriteLine($"  {i + 1}. [{j.Type}] {j.Name}  {j.SourceDir} -> {j.TargetDir}");
         }
     }
 
-    /// <summary>Prompts the user for job details and adds a new backup job (max 5).</summary>
     private void AddJob()
     {
-        if (ConfigManager.Instance.Jobs.Count >= 5)
-        {
-            System.Console.WriteLine(Resources.Get("job.max"));
-            return;
-        }
-
         System.Console.Write(Resources.Get("job.name"));
         var name = System.Console.ReadLine()?.Trim() ?? "";
 
@@ -93,7 +84,6 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.added"));
     }
 
-    /// <summary>Prompts the user to select a job by index and runs it.</summary>
     private void RunJob()
     {
         DisplayJobs();
@@ -111,7 +101,6 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.done"));
     }
 
-    /// <summary>Runs all configured backup jobs sequentially.</summary>
     private void RunAll()
     {
         if (ConfigManager.Instance.Jobs.Count == 0)
@@ -123,7 +112,40 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.done"));
     }
 
-    /// <summary>Prints the ASCII art banner once at startup.</summary>
+    // Settings sub-menu: display current log format and let the user switch JSON ↔ XML.
+    // After change: saves config + rewires Logger and StateManager (Strategy swap at runtime).
+    private void ShowSettings()
+    {
+        System.Console.WriteLine();
+        System.Console.WriteLine(Resources.Get("settings.title"));
+        System.Console.WriteLine($"  {Resources.Get("settings.format")}: {ConfigManager.Instance.LogFormat.ToUpperInvariant()}");
+        System.Console.Write(Resources.Get("settings.format.choose"));
+
+        var choice = System.Console.ReadLine()?.Trim().ToLowerInvariant() ?? "";
+        if (choice != "json" && choice != "xml")
+        {
+            System.Console.WriteLine(Resources.Get("settings.format.invalid"));
+            return;
+        }
+
+        ConfigManager.Instance.Config.LogFormat = choice;
+        ConfigManager.Instance.Save();
+
+        // Rewire Strategy at runtime — no restart needed.
+        ILogSerializer serializer = choice == "xml" ? new XmlLogSerializer() : new JsonLogSerializer();
+        Logger.Instance.SetSerializer(serializer);
+        StateManager.Instance.SetSerializer(serializer);
+
+        System.Console.WriteLine(Resources.Get("settings.format.updated"));
+    }
+
+    private void ChangeLanguage()
+    {
+        System.Console.Write(Resources.Get("lang.choice"));
+        var lang = System.Console.ReadLine()?.Trim().ToUpperInvariant();
+        Resources.Current = lang == "FR" ? Language.FR : Language.EN;
+    }
+
     private static void PrintBanner()
     {
         string[] easy =
@@ -161,7 +183,7 @@ public class ConsoleMenu
             System.Console.WriteLine("║");
         }
 
-        string cesi = "[ CESI • v1.0 ] ";
+        string cesi = "[ CESI • v1.1 ] ";
         int lp = (inner - cesi.Length) / 2;
         string cesiPadded = new string(' ', lp) + cesi + new string(' ', inner - cesi.Length - lp);
 
@@ -180,13 +202,5 @@ public class ConsoleMenu
         System.Console.WriteLine(blank);
         System.Console.WriteLine(bottom);
         System.Console.ResetColor();
-    }
-
-    /// <summary>Prompts the user to switch the UI language (EN/FR).</summary>
-    private void ChangeLanguage()
-    {
-        System.Console.Write(Resources.Get("lang.choice"));
-        var lang = System.Console.ReadLine()?.Trim().ToUpperInvariant();
-        Resources.Current = lang == "FR" ? Language.FR : Language.EN;
     }
 }

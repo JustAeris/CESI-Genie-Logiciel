@@ -1,5 +1,6 @@
-// Entry point: loads config, registers jobs, then either runs jobs from CLI args
+// Entry point: loads config, wires serializers, then either runs jobs from CLI args
 // or launches the interactive console menu.
+using EasyLog;
 using EasySave.Console;
 using EasySave.Core;
 
@@ -7,6 +8,14 @@ ConfigManager.Instance.Load();
 
 foreach (var job in ConfigManager.Instance.Jobs)
     BackupManager.Instance.AddJob(job);
+
+// Strategy (GoF): wire the serializer chosen in config to Logger and StateManager (DIP).
+ILogSerializer serializer = ConfigManager.Instance.LogFormat == "xml"
+    ? new XmlLogSerializer()
+    : new JsonLogSerializer();
+
+Logger.Instance.SetSerializer(serializer);
+StateManager.Instance.SetSerializer(serializer);
 
 var indices = ParseArgs(args);
 if (indices.Length > 0)
@@ -19,10 +28,6 @@ else
     new ConsoleMenu().Show();
 }
 
-/// <summary>
-/// Parses the first CLI argument into job indices.
-/// Returns an empty array if no argument is provided or parsing fails.
-/// </summary>
 static int[] ParseArgs(string[] arguments)
 {
     if (arguments.Length == 0) return [];
