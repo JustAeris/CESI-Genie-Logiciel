@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using EasySave.Core;
 using EasySave.GUI.MVVM;
 using EasySave.GUI.MVVM.Views;
+using EasySave.GUI.Services;
 
 namespace EasySave.GUI.ViewModels;
 
@@ -36,7 +38,7 @@ public class BackupJobsViewModel : ViewModelBase
             _ => SelectedJob != null);
 
         RunAllCommand = new RelayCommand(
-            _ => BackupManager.Instance.RunAll());
+            _ => Task.Run(() => BackupManager.Instance.RunAll()));
 
         AddJobCommand = new RelayCommand(
             _ => AddJob());
@@ -49,8 +51,17 @@ public class BackupJobsViewModel : ViewModelBase
     private void RunSelected()
     {
         if (SelectedJob == null) return;
-        int idx = Jobs.IndexOf(SelectedJob) + 1;
-        BackupManager.Instance.RunJob(idx);
+        var job = SelectedJob;
+        int idx = Jobs.IndexOf(job) + 1;
+        StatusService.Instance.SetRunning(job.Name);
+        Task.Run(() =>
+        {
+            var sw = Stopwatch.StartNew();
+            BackupManager.Instance.RunJob(idx);
+            sw.Stop();
+            StatusService.Instance.SetDone(job.Name, sw.ElapsedMilliseconds);
+            ToastNotification.Show("[ DONE ] Sauvegarde terminée", $"{job.Name} — {sw.ElapsedMilliseconds} ms");
+        });
     }
 
     private void RemoveSelected()

@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:EasySave.GUI.MVVM.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="20">
+    <Grid Background="#1E1E1E">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -16,40 +16,78 @@
         </Grid.RowDefinitions>
 
         <!-- Titre -->
-        <TextBlock Grid.Row="0" Text="Paramètres" FontSize="22"
-                   FontWeight="Bold" Margin="0,0,0,20"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="// PARAMÈTRES" Foreground="#F5D800"
+                       FontFamily="Consolas" FontSize="18" FontWeight="Bold"/>
+            <Rectangle Height="1" Fill="#F5D800" Margin="0,6,0,0" Opacity="0.3"/>
+        </StackPanel>
 
         <!-- Format des logs -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,15">
-            <TextBlock Text="Format des journaux" FontWeight="SemiBold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <TextBlock Text="&gt; LOG FORMAT" Foreground="#00FF41"
+                       FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
             <ComboBox ItemsSource="{Binding LogFormats}"
                       SelectedItem="{Binding SelectedLogFormat}"
-                      Width="150" HorizontalAlignment="Left"/>
+                      Width="150" HorizontalAlignment="Left"
+                      Background="#2A2A2A" Foreground="#F0F0F0"
+                      BorderBrush="#F5D800" FontFamily="Consolas">
+                <ComboBox.Resources>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#2A2A2A"/>
+                        <Setter Property="Foreground" Value="#F0F0F0"/>
+                        <Setter Property="FontFamily" Value="Consolas"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F5D800"/>
+                                <Setter Property="Foreground" Value="#0D0D0D"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#F5D800"/>
+                                <Setter Property="Foreground" Value="#0D0D0D"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ComboBox.Resources>
+            </ComboBox>
         </StackPanel>
 
         <!-- Logiciel métier -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,15">
-            <TextBlock Text="Logiciel métier" FontWeight="SemiBold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="2" Margin="0,0,0,20">
+            <TextBlock Text="&gt; LOGICIEL MÉTIER" Foreground="#00FF41"
+                       FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
             <TextBox Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"
-                     Width="250" HorizontalAlignment="Left"/>
+                     Width="250" HorizontalAlignment="Left"
+                     Background="#111111" Foreground="#F0F0F0"
+                     BorderBrush="#333333" FontFamily="Consolas"
+                     CaretBrush="#F5D800"/>
         </StackPanel>
 
         <!-- Extensions à crypter -->
-        <StackPanel Grid.Row="3" Margin="0,0,0,15">
-            <TextBlock Text="Extensions à crypter" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+        <StackPanel Grid.Row="3" Margin="0,0,0,20">
+            <TextBlock Text="&gt; EXTENSIONS CRYPTÉES" Foreground="#00FF41"
+                       FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                 <TextBox Text="{Binding NewExtension, UpdateSourceTrigger=PropertyChanged}"
-                         Width="100" Margin="0,0,10,0"/>
-                <Button Content="+ Ajouter" Command="{Binding AddExtensionCommand}" Padding="10,4"/>
+                         Width="100" Margin="0,0,8,0"
+                         Background="#111111" Foreground="#F0F0F0"
+                         BorderBrush="#333333" FontFamily="Consolas"
+                         CaretBrush="#F5D800"/>
+                <Button Content="+ ADD" Command="{Binding AddExtensionCommand}"
+                        Style="{StaticResource ActionButtonStyle}"/>
             </StackPanel>
-            <ListBox ItemsSource="{Binding EncryptedExtensions}" Height="100">
+            <ListBox ItemsSource="{Binding EncryptedExtensions}" Height="100"
+                     Background="#111111" BorderBrush="#1A1A1A">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding}" Margin="0,0,10,0"/>
-                            <Button Content="✕" Command="{Binding DataContext.RemoveExtensionCommand,
+                        <StackPanel Orientation="Horizontal" Margin="4,2">
+                            <TextBlock Text="{Binding}" Foreground="#00FF41"
+                                       FontFamily="Consolas" Margin="0,0,10,0"/>
+                            <Button Content="✕"
+                                    Command="{Binding DataContext.RemoveExtensionCommand,
                                     RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                    CommandParameter="{Binding}" Padding="4,0"/>
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    Padding="6,2"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -57,7 +95,8 @@
         </StackPanel>
 
         <!-- Bouton Sauvegarder -->
-        <Button Grid.Row="4" Content="Sauvegarder" Command="{Binding SaveCommand}"
-                Width="120" HorizontalAlignment="Left" Padding="15,8"/>
+        <Button Grid.Row="4" Content="[ SAUVEGARDER ]" Command="{Binding SaveCommand}"
+                Style="{StaticResource ActionButtonStyle}"
+                HorizontalAlignment="Left"/>
     </Grid>
 </UserControl>

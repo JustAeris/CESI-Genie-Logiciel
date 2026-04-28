@@ -5,27 +5,75 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EasySave.GUI"
         mc:Ignorable="d"
-        Title="EasySave" Height="500" Width="900">
+        Title="EasySave" Height="550" Width="950"
+        Background="{StaticResource BgColor}"
+        WindowStyle="SingleBorderWindow">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Menu latéral gauche -->
-        <StackPanel Grid.Column="0" Background="#2D2D2D">
-            <TextBlock Text="EasySave" Foreground="White" FontSize="18"
-                       FontWeight="Bold" Margin="20,20,0,30"/>
-            <Button Content="Sauvegardes"
-                    Command="{Binding NavigateToJobsCommand}"
-                    Style="{StaticResource MenuButtonStyle}"/>
-            <Button Content="Paramètres"
-                    Command="{Binding NavigateToSettingsCommand}"
-                    Style="{StaticResource MenuButtonStyle}"/>
-        </StackPanel>
+        <!-- Header top bar -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2"
+                Background="#111111" Height="48"
+                BorderThickness="0,0,0,2" BorderBrush="#F5D800">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal"
+                            VerticalAlignment="Center" Margin="20,0">
+                    <TextBlock Text="CESI" Foreground="#F5D800"
+                               FontFamily="Consolas" FontSize="18"
+                               FontWeight="Bold"/>
+                    <TextBlock Text="_" Foreground="#F5D800"
+                               FontFamily="Consolas" FontSize="18"
+                               FontWeight="Bold"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="EasySave v2.0"
+                           Foreground="#444444" FontFamily="Consolas"
+                           FontSize="12" VerticalAlignment="Center"
+                           Margin="10,0"/>
+            </Grid>
+        </Border>
 
-        <!-- Zone de contenu à droite -->
-        <ContentControl Grid.Column="1"
-                        Content="{Binding Navigation.CurrentViewModel}"/>
+        <!-- Sidebar -->
+        <Border Grid.Row="1" Grid.Column="0"
+                Background="{StaticResource SidebarColor}"
+                BorderThickness="0,0,1,0" BorderBrush="#1A1A1A">
+            <StackPanel Margin="0,20,0,0">
+                <TextBlock Text="> NAVIGATION" Foreground="#444444"
+                           FontFamily="Consolas" FontSize="10"
+                           Margin="20,0,0,10"/>
+                <Button Content="> sauvegardes"
+                        Command="{Binding NavigateToJobsCommand}"
+                        Style="{StaticResource MenuButtonStyle}"/>
+                <Button Content="> paramètres"
+                        Command="{Binding NavigateToSettingsCommand}"
+                        Style="{StaticResource MenuButtonStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Zone de contenu -->
+        <Border Grid.Row="1" Grid.Column="1"
+                Background="{StaticResource BgColor}">
+            <ContentControl Content="{Binding Navigation.CurrentViewModel}"
+                            Margin="20"/>
+        </Border>
+        <!-- Status bar -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2"
+                Background="#111111" Height="28"
+                BorderThickness="0,1,0,0" BorderBrush="#1A1A1A">
+            <TextBlock Text="{Binding Status.Message}"
+                       Foreground="#00FF41" FontFamily="Consolas" FontSize="11"
+                       VerticalAlignment="Center" Margin="20,0"/>
+        </Border>
     </Grid>
 </Window>

@@ -3,22 +3,87 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:EasySave.GUI"
              xmlns:views="clr-namespace:EasySave.GUI.MVVM.Views"
-             xmlns:vm="clr-namespace:EasySave.GUI.ViewModels"
-             StartupUri="MainWindow.xaml">
+             xmlns:vm="clr-namespace:EasySave.GUI.ViewModels">
     <Application.Resources>
+
+        <!-- Couleurs CESI Hacker -->
+        <SolidColorBrush x:Key="BgColor"       Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="SidebarColor"  Color="#111111"/>
+        <SolidColorBrush x:Key="AccentYellow"  Color="#F5D800"/>
+        <SolidColorBrush x:Key="NeonGreen"     Color="#00FF41"/>
+        <SolidColorBrush x:Key="TextPrimary"   Color="#F0F0F0"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#888888"/>
+        <SolidColorBrush x:Key="BorderColor"   Color="#F5D800"/>
+
+        <!-- Style bouton menu latéral -->
         <Style x:Key="MenuButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="#888888"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Padding" Value="20,14"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="3,0,0,0"
+                                BorderBrush="Transparent"
+                                Padding="{TemplateBinding Padding}"
+                                x:Name="border">
+                            <ContentPresenter HorizontalAlignment="Left"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1A1A1A"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#F5D800"/>
+                                <Setter Property="Foreground" Value="#F5D800"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style bouton action -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#F5D800"/>
+            <Setter Property="BorderBrush" Value="#F5D800"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#3E3E3E"/>
+                    <Setter Property="Background" Value="#F5D800"/>
+                    <Setter Property="Foreground" Value="#0D0D0D"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Style bouton danger (supprimer) -->
+        <Style x:Key="DangerButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FF3333"/>
+            <Setter Property="BorderBrush" Value="#FF3333"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF3333"/>
+                    <Setter Property="Foreground" Value="#0D0D0D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Lien ViewModel → View -->
         <DataTemplate DataType="{x:Type vm:BackupJobsViewModel}">
             <views:BackupJobsView/>
@@ -26,5 +91,6 @@
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView/>
         </DataTemplate>
+
     </Application.Resources>
 </Application>

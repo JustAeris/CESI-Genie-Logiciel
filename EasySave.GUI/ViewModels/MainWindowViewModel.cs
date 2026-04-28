@@ -1,4 +1,5 @@
 using EasySave.GUI.MVVM;
+using EasySave.GUI.Services;
 
 namespace EasySave.GUI.ViewModels;
 
@@ -8,6 +9,7 @@ namespace EasySave.GUI.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     public MVVM.NavigationService Navigation => MVVM.NavigationService.Instance;
+    public StatusService Status => StatusService.Instance;
 
     public RelayCommand NavigateToJobsCommand { get; }
     public RelayCommand NavigateToSettingsCommand { get; }
