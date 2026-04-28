@@ -1,16 +1,24 @@
 using EasySave.Core;
 
+using EasyLog;
+
 namespace EasySave.Tests;
 
+[Collection("Singletons")]
 public class DifferentialBackupTests : IDisposable
 {
     private readonly string _src;
     private readonly string _dst;
 
+    private readonly string _logDir;
+
     public DifferentialBackupTests()
     {
         _src = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         _dst = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        _logDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        Logger.Instance.SetSerializer(new JsonLogSerializer());
+        Logger.Instance.SetLogDirectory(_logDir);
 
         Directory.CreateDirectory(_src);
         File.WriteAllText(Path.Combine(_src, "file1.txt"), "original1");
@@ -19,8 +27,12 @@ public class DifferentialBackupTests : IDisposable
 
     public void Dispose()
     {
+        Logger.Instance.SetLogDirectory(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "EasySave", "logs"));
         if (Directory.Exists(_src)) Directory.Delete(_src, recursive: true);
         if (Directory.Exists(_dst)) Directory.Delete(_dst, recursive: true);
+        if (Directory.Exists(_logDir)) Directory.Delete(_logDir, recursive: true);
     }
 
     private (BackupJob job, BackupState state) Setup() => (
