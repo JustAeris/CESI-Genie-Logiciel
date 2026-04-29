@@ -3,7 +3,7 @@ using EasyLog;
 
 namespace EasySave.Tests;
 
-[Collection("Sequential")]
+[Collection("Singletons")]
 public class BackupPipelineTests : IDisposable
 {
     private readonly string _src;
@@ -19,11 +19,13 @@ public class BackupPipelineTests : IDisposable
         Directory.CreateDirectory(_dst);
         Directory.CreateDirectory(_logs);
         Logger.Instance.SetLogDirectory(_logs);
+        StateManager.Instance.SetStateDirectory(_logs);
+        StateManager.Instance.ClearStates();
     }
 
     public void Dispose()
     {
-        // Reset Logger to a throwaway dir so other tests aren't polluted
+        StateManager.Instance.ClearStates();
         Logger.Instance.SetLogDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         Directory.Delete(_src, recursive: true);
         Directory.Delete(_dst, recursive: true);
