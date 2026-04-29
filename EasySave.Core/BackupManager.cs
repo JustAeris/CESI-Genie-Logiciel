@@ -1,3 +1,5 @@
+using EasyLog;
+
 namespace EasySave.Core;
 
 public class BackupManager
@@ -6,6 +8,15 @@ public class BackupManager
     public static BackupManager Instance => _instance.Value;
 
     private readonly List<BackupJob> _jobs = [];
+
+    // Business software detector (optional)
+    private IBusinessSoftwareDetector? _detector;
+
+    // Set the business software detector
+    public void SetDetector(IBusinessSoftwareDetector detector)
+    {
+        _detector = detector;
+    }
 
     public void AddJob(BackupJob job) => _jobs.Add(job);
 
@@ -31,6 +42,21 @@ public class BackupManager
 
     private void RunJob(BackupJob job)
     {
+        // Block if business software detected
+        if (_detector != null && _detector.IsRunning())
+        {
+            Logger.Instance.Log(new EasyLog.LogEntry
+            {
+                Name = job.Name,
+                FileSource = "",
+                FileTarget = "",
+                FileSize = 0,
+                FileTransferTime = -1,
+                Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            });
+            return;
+        }
+
         var strategy = GetStrategy(job.Type);
         var state = new BackupState { Name = job.Name };
         strategy.Execute(job, state);
