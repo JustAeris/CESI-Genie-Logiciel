@@ -9,7 +9,7 @@ public abstract class BackupStrategyBase
     private ICryptoService? _cryptoService;
 
     // Set the crypto service
-    public void SetCryptoService(ICryptoService cryptoService)
+    public void SetCryptoService(EasySave.Core.ICryptoService cryptoService)
     {
         _cryptoService = cryptoService;
     }
@@ -47,9 +47,10 @@ public abstract class BackupStrategyBase
             FileTarget = dst,
             FileSize = new FileInfo(src).Length,
             FileTransferTime = sw.ElapsedMilliseconds,
-            EncryptionTime = encryptionTime, // ← ajout T9
+            EncryptionTime = encryptionTime,
             Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
+
         Logger.Instance.Log(entry);
 
         state.NbFilesLeftToDo--;
@@ -57,6 +58,7 @@ public abstract class BackupStrategyBase
         state.Progression = state.TotalFilesToCopy == 0
             ? 100.0
             : (state.TotalFilesToCopy - state.NbFilesLeftToDo) / (double)state.TotalFilesToCopy * 100.0;
+
         StateManager.Instance.Update(state);
     }
 }
