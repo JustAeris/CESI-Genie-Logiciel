@@ -5,6 +5,15 @@ namespace EasySave.Core;
 
 public abstract class BackupStrategyBase
 {
+    // Crypto service (can be null if no encryption needed)
+    private ICryptoService? _cryptoService;
+
+    // Set the crypto service
+    public void SetCryptoService(ICryptoService cryptoService)
+    {
+        _cryptoService = cryptoService;
+    }
+
     // Replaces the source root with the target root to build the destination path
     protected string BuildDestPath(string srcFile, string srcRoot, string dstRoot)
         => Path.Combine(dstRoot, Path.GetRelativePath(srcRoot, srcFile));
@@ -25,6 +34,11 @@ public abstract class BackupStrategyBase
         var sw = Stopwatch.StartNew();
         File.Copy(src, dst, overwrite: true);
         sw.Stop();
+
+        // Encrypt file if crypto service is set
+        long encryptionTime = 0;
+        if (_cryptoService != null)
+            encryptionTime = _cryptoService.Encrypt(dst);
 
         var entry = new LogEntry
         {
