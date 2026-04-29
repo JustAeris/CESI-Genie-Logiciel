@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace EasySave.Core
-{
-    internal interface IBusinessSoftwareDetector
-    {
-    }
-=======
 namespace EasySave.Core;
 
 // Strategy interface (GoF) — decouples business-software detection from BackupManager.
@@ -16,5 +5,4 @@ namespace EasySave.Core;
 public interface IBusinessSoftwareDetector
 {
     bool IsRunning();
->>>>>>> origin/develop
 }
