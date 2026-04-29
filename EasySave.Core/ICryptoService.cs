@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace EasySave.Core;
 
-namespace EasySave.Core
+public interface ICryptoService
 {
-    internal interface ICryptoService
-    {
-    }
+    // Encrypt a file and return execution time in ms (negative = error)
+    long Encrypt(string filePath);
 }

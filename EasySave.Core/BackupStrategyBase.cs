@@ -8,7 +8,7 @@ public abstract class BackupStrategyBase
     // Crypto service (can be null if no encryption needed)
     private ICryptoService? _cryptoService;
 
-    // Set the crypto service
+    // Set the crypto service (fully qualified to avoid any type ambiguity)
     public void SetCryptoService(EasySave.Core.ICryptoService cryptoService)
     {
         _cryptoService = cryptoService;
@@ -35,7 +35,6 @@ public abstract class BackupStrategyBase
         File.Copy(src, dst, overwrite: true);
         sw.Stop();
 
-        // Encrypt file if crypto service is set
         long encryptionTime = 0;
         if (_cryptoService != null)
             encryptionTime = _cryptoService.Encrypt(dst);
