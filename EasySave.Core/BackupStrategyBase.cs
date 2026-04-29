@@ -47,6 +47,7 @@ public abstract class BackupStrategyBase
             FileTarget = dst,
             FileSize = new FileInfo(src).Length,
             FileTransferTime = sw.ElapsedMilliseconds,
+            EncryptionTime = encryptionTime, // ← ajout T9
             Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
         Logger.Instance.Log(entry);
