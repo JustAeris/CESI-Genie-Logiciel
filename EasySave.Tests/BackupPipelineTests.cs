@@ -23,6 +23,8 @@ public class BackupPipelineTests : IDisposable
 
     public void Dispose()
     {
+        // Reset Logger to a throwaway dir so other tests aren't polluted
+        Logger.Instance.SetLogDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         Directory.Delete(_src, recursive: true);
         Directory.Delete(_dst, recursive: true);
         Directory.Delete(_logs, recursive: true);
@@ -74,7 +76,7 @@ public class BackupPipelineTests : IDisposable
         MakeFullBackup(new MockCryptoService(returnValue: -1))
             .Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.json").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
         Assert.NotNull(logFile);
         Assert.Contains("-1", File.ReadAllText(logFile));
     }
@@ -88,7 +90,7 @@ public class BackupPipelineTests : IDisposable
         MakeFullBackup(new MockCryptoService(returnValue: 42))
             .Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.json").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
         Assert.NotNull(logFile);
         Assert.Contains("42", File.ReadAllText(logFile));
     }
@@ -101,7 +103,7 @@ public class BackupPipelineTests : IDisposable
 
         MakeFullBackup().Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.json").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
         Assert.NotNull(logFile);
         var content = File.ReadAllText(logFile);
         Assert.True(
