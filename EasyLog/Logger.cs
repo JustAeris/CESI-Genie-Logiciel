@@ -1,25 +1,16 @@
-using System.Text.Json;
-
 namespace EasyLog;
 
-/// <summary>
-/// Singleton logger that appends <see cref="LogEntry"/> records to a daily JSON file.
-/// </summary>
+// Singleton (GoF) — one logger per process.
+// Uses the Strategy (GoF) pattern via ILogSerializer: swap JSON/XML without touching this class (OCP).
 public class Logger
 {
     private static readonly Lazy<Logger> _instance = new(() => new Logger());
-
-    /// <summary>Gets the singleton instance of <see cref="Logger"/>.</summary>
     public static Logger Instance => _instance.Value;
 
     private string _logDir;
+    private ILogSerializer _serializer = new JsonLogSerializer(); // default: v1.0 behaviour
     private readonly object _lock = new();
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
-
-    /// <summary>
-    /// Initializes the logger and creates the default log directory under AppData.
-    /// </summary>
     private Logger()
     {
         _logDir = Path.Combine(
@@ -28,21 +19,16 @@ public class Logger
         Directory.CreateDirectory(_logDir);
     }
 
-    /// <summary>
-    /// Overrides the log directory (useful for tests or custom deployments).
-    /// </summary>
-    /// <param name="path">Absolute path to the desired log directory.</param>
     public void SetLogDirectory(string path)
     {
         _logDir = path;
         Directory.CreateDirectory(_logDir);
     }
 
-    /// <summary>
-    /// Appends <paramref name="entry"/> to today's JSON log file.
-    /// Thread-safe: concurrent calls are serialized via a lock.
-    /// </summary>
-    /// <param name="entry">The log entry to persist.</param>
+    // Dependency injection (DIP) — inject any ILogSerializer at runtime.
+    public void SetSerializer(ILogSerializer serializer) => _serializer = serializer;
+
+    // Thread-safe append: read → append → write.
     public void Log(LogEntry entry)
     {
         lock (_lock)
@@ -51,21 +37,13 @@ public class Logger
             List<LogEntry> entries = [];
 
             if (File.Exists(filePath))
-            {
-                var raw = File.ReadAllText(filePath);
-                entries = JsonSerializer.Deserialize<List<LogEntry>>(raw) ?? [];
-            }
+                entries = _serializer.Deserialize(File.ReadAllText(filePath)).ToList();
 
             entries.Add(entry);
-            WriteToFile(JsonSerializer.Serialize(entries, _jsonOptions));
+            File.WriteAllText(filePath, _serializer.Serialize(entries));
         }
     }
 
-    /// <summary>Returns the path of today's log file (format: yyyy-MM-dd.json).</summary>
     private string GetLogFilePath() =>
-        Path.Combine(_logDir, $"{DateTime.Now:yyyy-MM-dd}.json");
-
-    /// <summary>Writes <paramref name="json"/> to today's log file, overwriting existing content.</summary>
-    private void WriteToFile(string json) =>
-        File.WriteAllText(GetLogFilePath(), json);
+        Path.Combine(_logDir, $"{DateTime.Now:yyyy-MM-dd}{_serializer.FileExtension}");
 }

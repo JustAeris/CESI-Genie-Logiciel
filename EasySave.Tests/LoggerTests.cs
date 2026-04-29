@@ -1,8 +1,10 @@
 using System.Text.Json;
+using System.Xml.Linq;
 using EasyLog;
 
 namespace EasySave.Tests;
 
+[Collection("Singletons")]
 public class LoggerTests : IDisposable
 {
     private readonly string _testDir;
@@ -12,17 +14,18 @@ public class LoggerTests : IDisposable
         _testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_testDir);
         Logger.Instance.SetLogDirectory(_testDir);
+        Logger.Instance.SetSerializer(new JsonLogSerializer()); // always start with JSON (v1.0 default)
     }
 
     public void Dispose()
     {
-        if (Directory.Exists(_testDir))
-            Directory.Delete(_testDir, recursive: true);
-
-        // Reset to default AppData directory
+        // Reset Logger state BEFORE deleting temp dir so concurrent tests never hit a deleted path.
+        Logger.Instance.SetSerializer(new JsonLogSerializer());
         Logger.Instance.SetLogDirectory(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "EasySave", "logs"));
+        if (Directory.Exists(_testDir))
+            Directory.Delete(_testDir, recursive: true);
     }
 
     private static LogEntry MakeEntry(string name = "test") => new()
@@ -34,6 +37,8 @@ public class LoggerTests : IDisposable
         FileTransferTime = 42.5,
         Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
     };
+
+    // --- JSON (default / v1.0 retrocompat) ---
 
     [Fact]
     public void Log_CreatesFileOnFirstCall()
@@ -111,5 +116,60 @@ public class LoggerTests : IDisposable
 
         Directory.Delete(newDir, recursive: true);
         Logger.Instance.SetLogDirectory(_testDir);
+    }
+
+    // --- XML serializer (v1.1 feature) ---
+
+    [Fact]
+    public void SetSerializer_Xml_CreatesXmlFile()
+    {
+        Logger.Instance.SetSerializer(new XmlLogSerializer());
+        Logger.Instance.Log(MakeEntry("xml-job"));
+
+        var files = Directory.GetFiles(_testDir, "*.xml");
+        Assert.Single(files);
+    }
+
+    [Fact]
+    public void SetSerializer_Xml_ProducesValidXml()
+    {
+        Logger.Instance.SetSerializer(new XmlLogSerializer());
+        Logger.Instance.Log(MakeEntry("xml-job"));
+
+        var file = Directory.GetFiles(_testDir, "*.xml").First();
+        var doc = XDocument.Load(file);
+
+        Assert.Equal("Logs", doc.Root?.Name.LocalName);
+        Assert.Single(doc.Root!.Elements("LogEntry"));
+        Assert.Equal("xml-job", (string?)doc.Root.Element("LogEntry")?.Element("Name"));
+    }
+
+    [Fact]
+    public void SetSerializer_Xml_AppendsTwice_TwoEntries()
+    {
+        Logger.Instance.SetSerializer(new XmlLogSerializer());
+        Logger.Instance.Log(MakeEntry("a"));
+        Logger.Instance.Log(MakeEntry("b"));
+
+        var file = Directory.GetFiles(_testDir, "*.xml").First();
+        var doc = XDocument.Load(file);
+
+        Assert.Equal(2, doc.Root!.Elements("LogEntry").Count());
+    }
+
+    [Fact]
+    public void SetSerializer_Xml_EncryptionTimePersistedCorrectly()
+    {
+        Logger.Instance.SetSerializer(new XmlLogSerializer());
+
+        var entry = MakeEntry("enc-job");
+        entry.EncryptionTime = 150;
+        Logger.Instance.Log(entry);
+
+        var file = Directory.GetFiles(_testDir, "*.xml").First();
+        var doc = XDocument.Load(file);
+        var enc = (long?)doc.Root!.Element("LogEntry")?.Element("EncryptionTime");
+
+        Assert.Equal(150L, enc);
     }
 }
