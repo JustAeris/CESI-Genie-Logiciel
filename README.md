@@ -1,8 +1,8 @@
 # EasySave
 
-> Backup management software — ProSoft Suite v1.0
+> Backup management software — ProSoft Suite v2.0
 
-EasySave is a console application built with .NET 8 that lets you define, manage, and execute backup jobs with full/differential strategies, real-time state tracking, and daily JSON logging.
+EasySave is a Windows desktop application (WPF) built with .NET 10 that lets you define, manage, and execute backup jobs with full/differential strategies, CryptoSoft encryption, business software detection, real-time state tracking, and configurable JSON or XML logging.
 
 ---
 
@@ -22,147 +22,159 @@ EasySave is a console application built with .NET 8 that lets you define, manage
 
 ## Features
 
-- Create up to 5 named backup jobs (v1.0)
+- Unlimited named backup jobs
 - Two backup strategies: **full** and **differential**
 - Source and target directories on local disks, external drives, or network shares (UNC paths)
-- Sequential or selective execution from the interactive menu or via CLI arguments
-- Real-time state file (`state.json`) updated after every file transfer
-- Daily log file (`YYYY-MM-DD.json`) written by the `EasyLog` shared library
-- Bilingual UI: **French** and **English**
+- **WPF graphical interface** (MVVM, CESI theme) — add, remove, run jobs, toast notifications
+- **CryptoSoft encryption** — files are encrypted after transfer via `cryptosoft.exe`; encryption time logged
+- **Business software detection** — backup is blocked while the configured business software is running
+- Configurable log format: **JSON** (default) or **XML** — switchable at runtime from the Settings view
+- Real-time state file (`state.json` or `state.xml`) updated after every file transfer
+- Daily log file (`YYYY-MM-DD.json` or `.xml`) written by the `EasyLog` shared library
+- Console entry point (`EasySave.Console`) still available for CLI usage
 
 ---
 
 ## Project structure
 
 ```
-EasySave.sln
-├── EasySave.Console/       # Entry point — CLI parsing, interactive menu
-├── EasySave.Core/          # Business logic — backup strategies, state, config
-└── EasyLog/                # Shared DLL — daily JSON logging (EasyLog.dll)
+CESI-Genie-Logiciel.slnx
+├── EasySave.GUI/           # WPF desktop application (MVVM, CESI theme) — main entry point
+├── EasySave.Console/       # CLI entry point — argument parsing, interactive menu
+├── EasySave.Core/          # Business logic — backup strategies, state, config, crypto
+├── EasyLog/                # Shared DLL — configurable JSON/XML logging
+└── EasySave.Tests/         # xUnit test suite
 ```
 
 ### Key classes
 
 | Class | Project | Role |
 |---|---|---|
-| `Program` | Console | Entry point, CLI argument parsing |
-| `ConsoleMenu` | Console | Interactive menu |
+| `App` / `MainWindow` | GUI | WPF application shell, navigation host |
+| `BackupJobsViewModel` | GUI | Lists jobs, runs selected/all, add/remove with dialog |
+| `SettingsViewModel` | GUI | Log format, business software name, encrypted extensions |
+| `ToastNotification` | GUI | Toast popup on job completion |
+| `Program` | Console | Entry point, CLI argument parsing, serializer wiring |
+| `ConsoleMenu` | Console | Interactive menu (includes Settings sub-menu) |
 | `BackupManager` | Core | Orchestrates job execution (Singleton) |
-| `ConfigManager` | Core | Loads/saves job configuration (Singleton) |
-| `StateManager` | Core | Updates and persists `state.json` (Singleton) |
+| `BackupStrategyBase` | Core | Copies files, calls `ICryptoService`, writes log + state |
+| `ICryptoService` | Core | Strategy interface for file encryption |
+| `CryptoSoftRunner` | Core | Calls `cryptosoft.exe`; returns elapsed ms or -1 on error |
+| `IBusinessSoftwareDetector` | Core | Strategy interface — returns `true` if target process is running |
+| `ProcessDetector` | Core | Concrete detector using `Process.GetProcessesByName()` |
+| `ConfigManager` | Core | Loads/saves `AppConfig` with migration from v1.0 format (Singleton) |
+| `AppConfig` | Core | Holds jobs + log format preference |
+| `StateManager` | Core | Updates and persists state file to `%AppData%\EasySave\` (Singleton) |
 | `FullBackup` | Core | Full backup strategy |
 | `DifferentialBackup` | Core | Differential backup strategy |
 | `Logger` | EasyLog | Appends entries to the daily log file (Singleton) |
+| `ILogSerializer` | EasyLog | Strategy interface for log serialization |
+| `JsonLogSerializer` | EasyLog | JSON implementation (default, v1.0 compatible) |
+| `XmlLogSerializer` | EasyLog | XML implementation |
 
 ---
 
 ## Requirements
 
-- Windows, Linux, or macOS
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8)
-- Visual Studio 2022 or later (recommended)
+- Windows 10 / 11
+- [.NET 10.0 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Visual Studio 2022 / JetBrains Rider (recommended)
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/<your-org>/easysave.git
-cd easysave
+git clone https://github.com/JustAeris/CESI-Genie-Logiciel.git
+cd CESI-Genie-Logiciel
 dotnet build
 ```
-
-The compiled executable and `EasyLog.dll` will be placed in the respective `bin/` output folders.
 
 ---
 
 ## Usage
 
-### Interactive mode
+### GUI mode (recommended)
+
+```bash
+dotnet run --project EasySave.GUI
+```
+
+Use the sidebar to navigate between **Backup Jobs** and **Settings**.
+Jobs can be added, removed, run individually or all at once.
+A toast notification confirms completion with the elapsed time.
+
+### Console — interactive mode
 
 ```bash
 dotnet run --project EasySave.Console
 ```
 
-The menu lets you add/edit backup jobs and launch one or all of them.
+Navigate the menu to add jobs, run them, or change the log format in **Settings (6)**.
 
-### CLI mode
+### Console — CLI mode
 
 ```bash
 # Run jobs 1, 2 and 3 sequentially
-EasySave.exe 1-3
+EasySave.Console.exe 1-3
 
 # Run jobs 1 and 3 only
-EasySave.exe 1;3
+EasySave.Console.exe 1;3
 ```
 
 ---
 
 ## Configuration files
 
-All files are in **JSON format** with line breaks for readability.
+All configuration and log files are stored in `%AppData%\EasySave\`.
 
-### Default locations
-
-Files are stored relative to the application's working directory to ensure compatibility across client servers. Absolute paths such as `C:\temp\` are avoided by design.
-
-| File | Default path | Description |
+| File | Path | Description |
 |---|---|---|
-| `config.json` | `./config/config.json` | Saved backup jobs |
-| `state.json` | `./logs/state.json` | Real-time job state |
-| `YYYY-MM-DD.json` | `./logs/YYYY-MM-DD.json` | Daily transfer log |
+| `config.json` | `%AppData%\EasySave\config.json` | Backup jobs + log format preference |
+| `state.json` / `state.xml` | `%AppData%\EasySave\state.*` | Real-time job state |
+| `YYYY-MM-DD.json` / `.xml` | `%AppData%\EasySave\logs\` | Daily transfer log |
 
-### `state.json` — example
+### `config.json` — v1.1 format
 
 ```json
-[
-  {
-    "Name": "Save1",
-    "SourceFilePath": "",
-    "TargetFilePath": "",
-    "State": "END",
-    "TotalFilesToCopy": 0,
-    "TotalFilesSize": 0,
-    "NbFilesLeftToDo": 0,
-    "SizeLeft": 0,
-    "Progression": 0,
-    "Timestamp": "17/12/2020 17:06:52"
-  }
-]
+{
+  "Jobs": [
+    {
+      "Name": "Save1",
+      "SourceDir": "D:\\project\\source",
+      "TargetDir": "E:\\backup\\project",
+      "Type": "Full"
+    }
+  ],
+  "LogFormat": "json"
+}
 ```
 
-### `YYYY-MM-DD.json` — example
+> **Retrocompat:** a v1.0 config (plain array of jobs) is automatically migrated on first load.
+
+### `YYYY-MM-DD.json` — log entry example
 
 ```json
 [
   {
     "Name": "Save1",
     "FileSource": "D:\\project\\source\\file.txt",
-    "FileTarget": "E:\\backup\\project\\source\\file.txt",
+    "FileTarget": "E:\\backup\\project\\file.txt",
     "FileSize": 174592,
-    "FileTransferTime": 38.029,
-    "time": "17/12/2020 17:06:49"
+    "FileTransferTime": 38,
+    "time": "2026-04-28 17:06:49",
+    "EncryptionTime": 0
   }
 ]
 ```
 
-`FileTransferTime` is expressed in milliseconds. A negative value indicates a transfer error.
+`FileTransferTime` and `EncryptionTime` are in milliseconds. `EncryptionTime` = 0 (no encryption), > 0 (duration), < 0 (error).
 
 ---
 
 ## UML diagrams
 
-UML diagrams (class, sequence, activity, use case) are located in the `/docs/uml/` directory and maintained as PlantUML `.puml` files.
-
-```
-docs/
-└── uml/
-    ├── architecture.puml
-    ├── classes.puml
-    ├── sequence_run.puml
-    ├── sequence_startup.puml
-    └── activity.puml
-```
+UML diagrams (class, sequence, activity, use case) are available in the `/Diagrams/` directory.
 
 ---
 
@@ -170,12 +182,13 @@ docs/
 
 | Version | Description |
 |---|---|
-| 1.0 | Console application, up to 5 backup jobs, full/differential, EasyLog DLL |
-| 1.1 | Bug fixes (branch `release/1.1`) |
-| 2.0 | WPF GUI (MVVM), unlimited jobs, encryption support |
-| 3.0 | Parallel execution, pause/stop/play, priority files, Docker log centralisation |
+| 1.0 | Console application, full/differential backup, EasyLog DLL, JSON logs |
+| 1.1 | Unlimited jobs, JSON/XML log format choice, `%AppData%` state path, `EncryptionTime` field |
+| **2.0** | **WPF GUI (MVVM, CESI theme), CryptoSoft encryption, business software detection** |
+| 3.0 | Parallel execution, pause/stop/play, priority files, remote log centralisation |
 
-Release notes are available in [`RELEASE_NOTES.md`](./RELEASE_NOTES.md).
+See [`RELEASE_NOTES_v2.0.md`](./RELEASE_NOTES_v2.0.md) for the full v2.0 changelog.
+See [`RELEASE_NOTES_v1.1.md`](./RELEASE_NOTES_v1.1.md) for the v1.1 changelog.
 
 ---
 
