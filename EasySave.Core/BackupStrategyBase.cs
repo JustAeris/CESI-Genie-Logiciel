@@ -5,23 +5,42 @@ namespace EasySave.Core;
 
 public abstract class BackupStrategyBase
 {
-    // Crypto service (can be null if no encryption needed)
     private ICryptoService? _cryptoService;
 
-    // Set the crypto service (fully qualified to avoid any type ambiguity)
+    // Shared across all strategy instances — counts pending priority files globally.
+    private static int _pendingPriorityFiles = 0;
+    private static readonly SemaphoreSlim _nonPriorityGate = new(1, 1);
+
     public void SetCryptoService(EasySave.Core.ICryptoService cryptoService)
     {
         _cryptoService = cryptoService;
     }
 
-    // Replaces the source root with the target root to build the destination path
     protected string BuildDestPath(string srcFile, string srcRoot, string dstRoot)
         => Path.Combine(dstRoot, Path.GetRelativePath(srcRoot, srcFile));
 
-    /// <summary>
-    /// Copies one file: creates dest directory, updates state, measures transfer time,
-    /// copies the file, logs the entry, updates progression.
-    /// </summary>
+    // Blocks non-priority files while any priority file is pending globally.
+    // Priority files close the gate on first registration; last one reopens it after copy.
+    protected void WaitIfBlockedByPriority(string filePath)
+    {
+        var extensions = ConfigManager.Instance.Config.PriorityExtensions;
+        if (extensions.Count == 0) return;
+
+        var ext = Path.GetExtension(filePath);
+        bool isPriority = extensions.Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
+
+        if (isPriority)
+        {
+            if (Interlocked.Increment(ref _pendingPriorityFiles) == 1)
+                _nonPriorityGate.Wait(); // close the gate when the first priority file registers
+        }
+        else
+        {
+            _nonPriorityGate.Wait();    // block until no priority files remain
+            _nonPriorityGate.Release(); // pass through immediately
+        }
+    }
+
     protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
@@ -35,6 +54,16 @@ public abstract class BackupStrategyBase
         var sw = Stopwatch.StartNew();
         File.Copy(src, dst, overwrite: true);
         sw.Stop();
+
+        // Release the priority slot once the file is on disk
+        var extensions = ConfigManager.Instance.Config.PriorityExtensions;
+        if (extensions.Count > 0)
+        {
+            var ext = Path.GetExtension(src);
+            if (extensions.Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase)))
+                if (Interlocked.Decrement(ref _pendingPriorityFiles) == 0)
+                    _nonPriorityGate.Release(); // reopen the gate when last priority file is done
+        }
 
         long encryptionTime = 0;
         if (_cryptoService != null)
