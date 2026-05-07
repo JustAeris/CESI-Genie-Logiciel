@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using EasyLog;
 
 namespace EasySave.Core;
@@ -8,6 +9,7 @@ public class BackupManager
     public static BackupManager Instance => _instance.Value;
 
     private readonly List<BackupJob> _jobs = [];
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _cts = new();
 
     // Business software detector (optional)
     private IBusinessSoftwareDetector? _detector;
@@ -16,6 +18,12 @@ public class BackupManager
     public void SetDetector(IBusinessSoftwareDetector detector)
     {
         _detector = detector;
+    }
+
+    public void CancelJob(string jobName)
+    {
+        if (_cts.TryGetValue(jobName, out var cts))
+            cts.Cancel();
     }
 
     public void AddJob(BackupJob job) => _jobs.Add(job);
@@ -36,8 +44,8 @@ public class BackupManager
 
     public void RunAll()
     {
-        foreach (var job in _jobs)
-            RunJob(job);
+        var tasks = _jobs.Select(job => Task.Run(() => RunJob(job))).ToArray();
+        Task.WaitAll(tasks);
     }
 
     private void RunJob(BackupJob job)
@@ -57,9 +65,14 @@ public class BackupManager
             return;
         }
 
+        var cts = new CancellationTokenSource();
+        _cts[job.Name] = cts;
+
         var strategy = GetStrategy(job.Type);
         var state = new BackupState { Name = job.Name };
-        strategy.Execute(job, state);
+        strategy.Execute(job, state, cts.Token);
+
+        _cts.TryRemove(job.Name, out _);
     }
 
     private IBackupStrategy GetStrategy(BackupType type) => type switch
