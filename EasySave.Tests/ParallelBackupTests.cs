@@ -60,7 +60,7 @@ public class ParallelBackupTests : IDisposable
     private void AddJob(string name, string src, string dst)
     {
         BackupManager.Instance.AddJob(new BackupJob
-            { Name = name, SourceDir = src, TargetDir = dst, Type = BackupType.Full });
+        { Name = name, SourceDir = src, TargetDir = dst, Type = BackupType.Full });
         _jobsAdded++;
     }
 
