@@ -12,4 +12,5 @@ public class BackupState
     public string SourceFilePath { get; set; } = "";
     public string TargetFilePath { get; set; } = "";
     public DateTime Timestamp { get; set; }
+    public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 }
