@@ -19,8 +19,24 @@ public abstract class BackupStrategyBase
     protected string BuildDestPath(string srcFile, string srcRoot, string dstRoot)
         => Path.Combine(dstRoot, Path.GetRelativePath(srcRoot, srcFile));
 
+    // Pre-registers all priority files in the list before copying begins.
+    // Closes the gate on first registration so non-priority copies block immediately,
+    // even if jobs are running in parallel and copies haven't started yet.
+    protected void RegisterPriorityFiles(IEnumerable<string> files)
+    {
+        var extensions = ConfigManager.Instance.Config.PriorityExtensions;
+        if (extensions.Count == 0) return;
+
+        int count = files.Count(f => extensions.Any(e => e.Equals(Path.GetExtension(f), StringComparison.OrdinalIgnoreCase)));
+        if (count == 0) return;
+
+        int prev = Interlocked.Add(ref _pendingPriorityFiles, count) - count;
+        if (prev == 0)
+            _nonPriorityGate.Wait(); // close the gate
+    }
+
     // Blocks non-priority files while any priority file is pending globally.
-    // Priority files close the gate on first registration; last one reopens it after copy.
+    // Priority files are already counted by RegisterPriorityFiles; no action needed here.
     protected void WaitIfBlockedByPriority(string filePath)
     {
         var extensions = ConfigManager.Instance.Config.PriorityExtensions;
@@ -29,15 +45,10 @@ public abstract class BackupStrategyBase
         var ext = Path.GetExtension(filePath);
         bool isPriority = extensions.Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
 
-        if (isPriority)
+        if (!isPriority)
         {
-            if (Interlocked.Increment(ref _pendingPriorityFiles) == 1)
-                _nonPriorityGate.Wait(); // close the gate when the first priority file registers
-        }
-        else
-        {
-            _nonPriorityGate.Wait();    // block until no priority files remain
-            _nonPriorityGate.Release(); // pass through immediately
+            _nonPriorityGate.Wait();    // block until all priority files are done
+            _nonPriorityGate.Release(); // pass through
         }
     }
 

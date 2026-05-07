@@ -21,11 +21,13 @@ public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
         state.SizeLeft = state.TotalFilesSize;
         state.State = "ACTIVE";
 
-        // Priority files first so the gate closes before any non-priority file is reached
+        // Sort priority files first, then bulk-register them before any copy starts.
         var priorityExts = ConfigManager.Instance.Config.PriorityExtensions;
         if (priorityExts.Count > 0)
             filesToCopy = [.. filesToCopy.OrderByDescending(f =>
                 priorityExts.Any(e => e.Equals(Path.GetExtension(f), StringComparison.OrdinalIgnoreCase)))];
+
+        RegisterPriorityFiles(filesToCopy);
 
         foreach (var src in filesToCopy)
         {

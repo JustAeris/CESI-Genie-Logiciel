@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using EasySave.Core;
 using EasyLog;
 
@@ -18,7 +19,7 @@ public class PriorityFilesTests : IDisposable
         StateManager.Instance.SetStateDirectory(Path.Combine(_root, "state"));
         StateManager.Instance.SetSerializer(new JsonLogSerializer());
         StateManager.Instance.ClearStates();
-        ResetPriorityBarrier();
+        ResetBarrier();
     }
 
     public void Dispose()
@@ -30,73 +31,75 @@ public class PriorityFilesTests : IDisposable
         Logger.Instance.SetSerializer(new JsonLogSerializer());
         Logger.Instance.SetLogDirectory(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasySave", "logs"));
-        ResetPriorityBarrier();
+        ResetBarrier();
         if (Directory.Exists(_root))
             Directory.Delete(_root, recursive: true);
     }
 
-    // T-PRI-1: .pdf files (priority) must all be copied before the first .txt file
+    // T-PRI-1: Within a single job, .pdf files (priority) must all be copied before any .txt file.
+    // Files are created in alphabetical order so .txt sorts first — the sort in Execute must reorder them.
     [Fact]
-    public async Task PriorityFiles_AreCopiedBeforeNonPriorityFiles()
-    {
-        var src1 = MakeDir("src1");
-        var src2 = MakeDir("src2");
-        var dst1 = MakeDir("dst1");
-        var dst2 = MakeDir("dst2");
-
-        for (var i = 0; i < 3; i++)
-        {
-            File.WriteAllBytes(Path.Combine(src1, $"doc{i}.pdf"), new byte[512]);
-            File.WriteAllBytes(Path.Combine(src1, $"note{i}.txt"), new byte[512]);
-            File.WriteAllBytes(Path.Combine(src2, $"doc{i}.pdf"), new byte[512]);
-            File.WriteAllBytes(Path.Combine(src2, $"note{i}.txt"), new byte[512]);
-        }
-
-        ConfigManager.Instance.Config.PriorityExtensions = [".pdf"];
-
-        var recorder = new OrderRecordingCryptoService();
-        var strategy1 = new FullBackup();
-        var strategy2 = new FullBackup();
-        strategy1.SetCryptoService(recorder);
-        strategy2.SetCryptoService(recorder);
-
-        var job1 = new BackupJob { Name = "pri-j1", SourceDir = src1, TargetDir = dst1, Type = BackupType.Full };
-        var job2 = new BackupJob { Name = "pri-j2", SourceDir = src2, TargetDir = dst2, Type = BackupType.Full };
-
-        await Task.WhenAll(
-            Task.Run(() => strategy1.Execute(job1, new BackupState { Name = "pri-j1" })),
-            Task.Run(() => strategy2.Execute(job2, new BackupState { Name = "pri-j2" })));
-
-        var order = recorder.CopiedFiles.ToList();
-        Assert.NotEmpty(order);
-
-        var lastPdfIdx = order.FindLastIndex(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
-        var firstTxtIdx = order.FindIndex(f => f.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
-
-        Assert.True(lastPdfIdx < firstTxtIdx,
-            $"Expected all .pdf copies before any .txt, but last .pdf was at index {lastPdfIdx} and first .txt at {firstTxtIdx}.\nOrder: {string.Join(", ", order.Select(Path.GetFileName))}");
-    }
-
-    // T-PRI-2: empty PriorityExtensions → all files copy normally without any blocking
-    [Fact]
-    public void NoPriorityExtensions_AllFilesCopyWithoutBlocking()
+    public void PriorityFiles_AreCopiedBeforeNonPriorityFiles()
     {
         var src = MakeDir("src");
         var dst = MakeDir("dst");
 
-        File.WriteAllText(Path.Combine(src, "a.txt"), "text");
-        File.WriteAllText(Path.Combine(src, "b.pdf"), "pdf content");
+        // Alphabetical order: .txt files come before .pdf — deliberately tests reordering
+        File.WriteAllBytes(Path.Combine(src, "aaa.txt"), new byte[256]);
+        File.WriteAllBytes(Path.Combine(src, "bbb.pdf"), new byte[256]);
+        File.WriteAllBytes(Path.Combine(src, "ccc.txt"), new byte[256]);
+        File.WriteAllBytes(Path.Combine(src, "ddd.pdf"), new byte[256]);
 
-        ConfigManager.Instance.Config.PriorityExtensions = [];
+        ConfigManager.Instance.Config.PriorityExtensions = [".pdf"];
 
-        var job = new BackupJob { Name = "no-pri", SourceDir = src, TargetDir = dst, Type = BackupType.Full };
-        new FullBackup().Execute(job, new BackupState { Name = "no-pri" });
+        var recorder = new OrderRecordingCryptoService();
+        var strategy = new FullBackup();
+        strategy.SetCryptoService(recorder);
+        strategy.Execute(
+            new BackupJob { Name = "order", SourceDir = src, TargetDir = dst, Type = BackupType.Full },
+            new BackupState { Name = "order" });
 
-        Assert.True(File.Exists(Path.Combine(dst, "a.txt")));
-        Assert.True(File.Exists(Path.Combine(dst, "b.pdf")));
+        var order = recorder.CopiedFiles.ToList();
+        var lastPdfIdx = order.FindLastIndex(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
+        var firstTxtIdx = order.FindIndex(f => f.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
+
+        Assert.True(lastPdfIdx < firstTxtIdx,
+            $"All .pdf copies must precede any .txt copy.\nOrder: {string.Join(", ", order.Select(Path.GetFileName))}");
     }
 
-    // T-PRI-3: _pendingPriorityFiles must be 0 after a complete execution
+    // T-PRI-2: A non-priority copy blocks while the global gate is closed (priority file in flight).
+    // The gate is closed externally via reflection to simulate a concurrent job's pending priority file.
+    [Fact]
+    public async Task NonPriorityFile_BlocksWhilePriorityGateIsClosed()
+    {
+        var src = MakeDir("src");
+        var dst = MakeDir("dst");
+        File.WriteAllText(Path.Combine(src, "note.txt"), "text");
+
+        ConfigManager.Instance.Config.PriorityExtensions = [".pdf"]; // .txt is non-priority
+
+        CloseGate(); // simulate another job's priority file being in flight
+
+        var completed = false;
+        var task = Task.Run(() =>
+        {
+            new FullBackup().Execute(
+                new BackupJob { Name = "blocked", SourceDir = src, TargetDir = dst, Type = BackupType.Full },
+                new BackupState { Name = "blocked" });
+            completed = true;
+        });
+
+        await Task.Delay(100); // enough time for the task to start and block on the gate
+        Assert.False(completed, "Non-priority copy should be blocked while gate is closed");
+
+        OpenGate(); // simulate priority file completing
+
+        await task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(completed, "Backup should complete after gate opens");
+        Assert.True(File.Exists(Path.Combine(dst, "note.txt")));
+    }
+
+    // T-PRI-3: _pendingPriorityFiles must be 0 after a complete execution.
     [Fact]
     public void PriorityCounter_ReturnsToZeroAfterExecution()
     {
@@ -109,15 +112,16 @@ public class PriorityFilesTests : IDisposable
 
         ConfigManager.Instance.Config.PriorityExtensions = [".pdf"];
 
-        var job = new BackupJob { Name = "cnt-job", SourceDir = src, TargetDir = dst, Type = BackupType.Full };
-        new FullBackup().Execute(job, new BackupState { Name = "cnt-job" });
+        new FullBackup().Execute(
+            new BackupJob { Name = "cnt", SourceDir = src, TargetDir = dst, Type = BackupType.Full },
+            new BackupState { Name = "cnt" });
 
         var field = typeof(BackupStrategyBase).GetField("_pendingPriorityFiles",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var count = (int)field!.GetValue(null)!;
-
-        Assert.Equal(0, count);
+            BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.Equal(0, (int)field!.GetValue(null)!);
     }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
 
     private string MakeDir(string name)
     {
@@ -126,32 +130,42 @@ public class PriorityFilesTests : IDisposable
         return path;
     }
 
-    // Resets the shared static barrier so tests don't interfere with each other.
-    private static void ResetPriorityBarrier()
+    private static SemaphoreSlim GetGate()
+    {
+        var field = typeof(BackupStrategyBase).GetField("_nonPriorityGate",
+            BindingFlags.NonPublic | BindingFlags.Static);
+        return (SemaphoreSlim)field!.GetValue(null)!;
+    }
+
+    private static void CloseGate()
+    {
+        var gate = GetGate();
+        if (gate.CurrentCount > 0) gate.Wait(0); // consume the permit
+    }
+
+    private static void OpenGate()
+    {
+        var gate = GetGate();
+        if (gate.CurrentCount == 0) gate.Release();
+    }
+
+    // Resets the shared static barrier to its initial state between tests.
+    private static void ResetBarrier()
     {
         var type = typeof(BackupStrategyBase);
-        var counterField = type.GetField("_pendingPriorityFiles",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        counterField!.SetValue(null, 0);
-
-        var gateField = type.GetField("_nonPriorityGate",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var gate = (SemaphoreSlim)gateField!.GetValue(null)!;
-        // Restore to exactly 1 permit (open state)
+        type.GetField("_pendingPriorityFiles", BindingFlags.NonPublic | BindingFlags.Static)!
+            .SetValue(null, 0);
+        var gate = GetGate();
         while (gate.CurrentCount < 1) gate.Release();
         while (gate.CurrentCount > 1) gate.Wait(0);
     }
 
-    // Records destination paths in copy order (called from CopyFile right after File.Copy).
+    // Records destination paths in the order CopyFile processes them.
+    // Called from BackupStrategyBase.CopyFile right after File.Copy via ICryptoService.
     private sealed class OrderRecordingCryptoService : ICryptoService
     {
         public readonly ConcurrentQueue<string> CopiedFiles = new();
-
-        public long Encrypt(string filePath)
-        {
-            CopiedFiles.Enqueue(filePath);
-            return 0;
-        }
+        public long Encrypt(string filePath) { CopiedFiles.Enqueue(filePath); return 0; }
     }
 
     private sealed class NullLogSerializer : ILogSerializer
