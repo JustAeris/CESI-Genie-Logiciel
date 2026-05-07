@@ -52,11 +52,7 @@ public abstract class BackupStrategyBase
 
         Logger.Instance.Log(entry);
 
-        state.NbFilesLeftToDo--;
-        state.SizeLeft -= new FileInfo(dst).Length;
-        state.Progression = state.TotalFilesToCopy == 0
-            ? 100.0
-            : (state.TotalFilesToCopy - state.NbFilesLeftToDo) / (double)state.TotalFilesToCopy * 100.0;
+        state.DecrementProgress(new FileInfo(dst).Length, state.TotalFilesToCopy);
 
         StateManager.Instance.Update(state);
     }
