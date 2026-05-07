@@ -8,4 +8,8 @@ public class AppConfig
     // File extensions that must be transferred before any non-priority file.
     // Example: [".pdf", ".docx"]
     public List<string> PriorityExtensions { get; set; } = [];
+
+    // Max file size (in KB) that can be transferred simultaneously across jobs.
+    // 0 = no restriction.
+    public int LargeFileSizeKb { get; set; } = 0;
 }
