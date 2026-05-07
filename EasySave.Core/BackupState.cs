@@ -27,5 +27,4 @@ public class BackupState
                 : (totalFiles - NbFilesLeftToDo) / (double)totalFiles * 100.0;
         }
     }
-    public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 }
