@@ -11,6 +11,9 @@ public abstract class BackupStrategyBase
     private static int _pendingPriorityFiles = 0;
     private static readonly SemaphoreSlim _nonPriorityGate = new(1, 1);
 
+    // Ensures only one large file is transferred at a time across all parallel jobs.
+    private static readonly SemaphoreSlim _largeFileLock = new(1, 1);
+
     public void SetCryptoService(EasySave.Core.ICryptoService cryptoService)
     {
         _cryptoService = cryptoService;
@@ -62,8 +65,23 @@ public abstract class BackupStrategyBase
         state.Timestamp = DateTime.Now;
         StateManager.Instance.Update(state);
 
+        var sizeKb = new FileInfo(src).Length / 1024;
+        var threshold = ConfigManager.Instance.Config.LargeFileSizeKb;
+        var isLarge = threshold > 0 && sizeKb > threshold;
+
+        if (isLarge)
+            _largeFileLock.Wait(token);
+
         var sw = Stopwatch.StartNew();
-        File.Copy(src, dst, overwrite: true);
+        try
+        {
+            File.Copy(src, dst, overwrite: true);
+        }
+        finally
+        {
+            if (isLarge)
+                _largeFileLock.Release();
+        }
         sw.Stop();
 
         // Release the priority slot once the file is on disk
