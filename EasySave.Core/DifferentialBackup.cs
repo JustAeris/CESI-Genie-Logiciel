@@ -3,7 +3,7 @@ namespace EasySave.Core;
 public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
 {
     /// <summary>Copies only files that are new or modified since the last backup.</summary>
-    public void Execute(BackupJob job, BackupState state)
+    public void Execute(BackupJob job, BackupState state, CancellationToken token = default)
     {
         var allFiles = Directory.GetFiles(job.SourceDir, "*", SearchOption.AllDirectories);
 
@@ -24,7 +24,7 @@ public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
         foreach (var src in filesToCopy)
         {
             var dst = BuildDestPath(src, job.SourceDir, job.TargetDir);
-            CopyFile(src, dst, state);
+            CopyFile(src, dst, state, token);
         }
 
         state.State = "END";

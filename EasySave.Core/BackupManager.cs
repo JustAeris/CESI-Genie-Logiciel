@@ -43,8 +43,8 @@ public class BackupManager
 
     public void RunAll()
     {
-        foreach (var job in _jobs)
-            RunJob(job);
+        var tasks = _jobs.Select(job => Task.Run(() => RunJob(job))).ToArray();
+        Task.WaitAll(tasks);
     }
 
     private void RunJob(BackupJob job)
