@@ -3,7 +3,7 @@ namespace EasySave.Core;
 public class FullBackup : BackupStrategyBase, IBackupStrategy
 {
     /// <summary>Copies all files from source to target recursively.</summary>
-    public void Execute(BackupJob job, BackupState state)
+    public void Execute(BackupJob job, BackupState state, CancellationToken token = default)
     {
         var files = Directory.GetFiles(job.SourceDir, "*", SearchOption.AllDirectories);
 
@@ -16,7 +16,7 @@ public class FullBackup : BackupStrategyBase, IBackupStrategy
         foreach (var src in files)
         {
             var dst = BuildDestPath(src, job.SourceDir, job.TargetDir);
-            CopyFile(src, dst, state);
+            CopyFile(src, dst, state, token);
         }
 
         state.State = "END";

@@ -22,8 +22,9 @@ public abstract class BackupStrategyBase
     /// Copies one file: creates dest directory, updates state, measures transfer time,
     /// copies the file, logs the entry, updates progression.
     /// </summary>
-    protected void CopyFile(string src, string dst, BackupState state)
+    protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
 
         state.SourceFilePath = src;
@@ -52,11 +53,7 @@ public abstract class BackupStrategyBase
 
         Logger.Instance.Log(entry);
 
-        state.NbFilesLeftToDo--;
-        state.SizeLeft -= new FileInfo(dst).Length;
-        state.Progression = state.TotalFilesToCopy == 0
-            ? 100.0
-            : (state.TotalFilesToCopy - state.NbFilesLeftToDo) / (double)state.TotalFilesToCopy * 100.0;
+        state.DecrementProgress(new FileInfo(dst).Length, state.TotalFilesToCopy);
 
         StateManager.Instance.Update(state);
     }
