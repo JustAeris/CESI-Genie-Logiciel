@@ -2,9 +2,13 @@
 
 public class CryptoSoftRunner : ICryptoService
 {
+    // SemaphoreSlim(1,1) — only one call to cryptosoft.exe at a time
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
     // Run cryptosoft.exe and return execution time in ms (negative = error)
     public long Encrypt(string filePath)
     {
+        _semaphore.Wait();
         try
         {
             var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -31,6 +35,11 @@ public class CryptoSoftRunner : ICryptoService
         catch
         {
             return -1;
+        }
+        finally
+        {
+            // Always release the semaphore
+            _semaphore.Release();
         }
     }
 }
