@@ -1,14 +1,24 @@
-﻿namespace EasySave.Core;
+namespace EasySave.Core;
 
+/// <summary>
+/// Runs cryptosoft.exe to encrypt a file.
+/// A static SemaphoreSlim(1,1) ensures only one instance of cryptosoft.exe
+/// runs at a time, even across parallel backup jobs (T7).
+/// </summary>
 public class CryptoSoftRunner : ICryptoService
 {
-    // SemaphoreSlim(1,1) — only one call to cryptosoft.exe at a time
-    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    // Mono-instance guard: only one cryptosoft.exe at a time across all threads
+    private static readonly SemaphoreSlim _mutex = new(1, 1);
 
-    // Run cryptosoft.exe and return execution time in ms (negative = error)
+    /// <summary>
+    /// Encrypts a file using cryptosoft.exe.
+    /// Waits for any running instance to finish before launching.
+    /// </summary>
+    /// <param name="filePath">Path to the file to encrypt.</param>
+    /// <returns>Execution time in ms, or -1 on error.</returns>
     public long Encrypt(string filePath)
     {
-        _semaphore.Wait();
+        _mutex.Wait();
         try
         {
             var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -26,11 +36,8 @@ public class CryptoSoftRunner : ICryptoService
 
             stopwatch.Stop();
 
-            // Exit code > 0 = success, < 0 = error
-            if (process?.ExitCode > 0)
-                return stopwatch.ElapsedMilliseconds;
-            else
-                return -1;
+            // Exit code > 0 = success, negative = error
+            return process?.ExitCode > 0 ? stopwatch.ElapsedMilliseconds : -1;
         }
         catch
         {
@@ -38,8 +45,7 @@ public class CryptoSoftRunner : ICryptoService
         }
         finally
         {
-            // Always release the semaphore
-            _semaphore.Release();
+            _mutex.Release();
         }
     }
 }
