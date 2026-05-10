@@ -9,6 +9,7 @@ public class StateManager
     private static readonly Lazy<StateManager> _instance = new(() => new StateManager());
     public static StateManager Instance => _instance.Value;
 
+    private readonly object _lock = new();
     private string _stateDir;
     private List<BackupState> _states = new List<BackupState>();
     private ILogSerializer _serializer = new JsonLogSerializer();
@@ -29,16 +30,25 @@ public class StateManager
 
     public void SetSerializer(ILogSerializer serializer) => _serializer = serializer;
 
-    public void ClearStates() => _states = new List<BackupState>();
+    public void ClearStates()
+    {
+        lock (_lock) _states = new List<BackupState>();
+    }
 
     public void Update(BackupState state)
     {
-        _states.RemoveAll(s => s.Name == state.Name);
-        _states.Add(state);
-        Persist();
+        lock (_lock)
+        {
+            _states.RemoveAll(s => s.Name == state.Name);
+            _states.Add(state);
+            Persist();
+        }
     }
 
-    public List<BackupState> GetAll() => _states;
+    public List<BackupState> GetAll()
+    {
+        lock (_lock) return _states.ToList();
+    }
 
     private void Persist()
     {
