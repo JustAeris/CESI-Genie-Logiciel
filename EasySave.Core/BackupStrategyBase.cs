@@ -55,9 +55,13 @@ public abstract class BackupStrategyBase
         }
     }
 
-    protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default)
+    protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default, ManualResetEventSlim? pauseGate = null)
     {
         token.ThrowIfCancellationRequested();
+
+        // Pause point — waits here until ResumeJob() is called (T5)
+        pauseGate?.Wait(token);
+
         Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
 
         state.SourceFilePath = src;
