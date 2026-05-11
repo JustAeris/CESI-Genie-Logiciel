@@ -6,6 +6,7 @@ namespace EasySave.Core;
 /// <summary>
 /// Singleton manager for all backup jobs.
 /// Supports parallel execution, Pause/Resume/Stop per job (T5).
+/// Auto-pauses all active jobs when business software is detected (T6).
 /// </summary>
 public class BackupManager
 {
@@ -20,11 +21,65 @@ public class BackupManager
     // ManualResetEventSlim per job — set=running, reset=paused
     private readonly ConcurrentDictionary<string, ManualResetEventSlim> _pauseGates = new();
 
-    // Business software detector (optional)
+    // Business software detector + polling timer (T6)
     private IBusinessSoftwareDetector? _detector;
+    private Timer? _businessSoftwareTimer;
+    private bool _businessSoftwarePaused = false;
 
-    /// <summary>Sets the business software detector used to block/pause jobs.</summary>
-    public void SetDetector(IBusinessSoftwareDetector detector) => _detector = detector;
+    /// <summary>
+    /// Sets the business software detector and starts polling every second.
+    /// When detected: all active jobs are paused.
+    /// When gone: all paused jobs are resumed.
+    /// </summary>
+    public void SetDetector(IBusinessSoftwareDetector detector)
+    {
+        _detector = detector;
+        _businessSoftwareTimer?.Dispose();
+        _businessSoftwareTimer = new Timer(_ => PollBusinessSoftware(), null,
+            TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private void PollBusinessSoftware()
+    {
+        if (_detector == null) return;
+
+        bool isRunning = _detector.IsRunning();
+
+        if (isRunning && !_businessSoftwarePaused)
+        {
+            _businessSoftwarePaused = true;
+            foreach (var jobName in _pauseGates.Keys)
+            {
+                PauseJob(jobName);
+                Logger.Instance.Log(new LogEntry
+                {
+                    Name = jobName,
+                    FileSource = "",
+                    FileTarget = "",
+                    FileSize = 0,
+                    FileTransferTime = -2, // -2 = paused by business software
+                    Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+        }
+        else if (!isRunning && _businessSoftwarePaused)
+        {
+            _businessSoftwarePaused = false;
+            foreach (var jobName in _pauseGates.Keys)
+            {
+                ResumeJob(jobName);
+                Logger.Instance.Log(new LogEntry
+                {
+                    Name = jobName,
+                    FileSource = "",
+                    FileTarget = "",
+                    FileSize = 0,
+                    FileTransferTime = -3, // -3 = resumed after business software
+                    Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+        }
+    }
 
     public void AddJob(BackupJob job) => _jobs.Add(job);
 
@@ -41,14 +96,14 @@ public class BackupManager
     public void PauseJob(string jobName)
     {
         if (_pauseGates.TryGetValue(jobName, out var gate))
-            gate.Reset(); // block the next CopyFile
+            gate.Reset();
     }
 
     /// <summary>Resumes a paused job.</summary>
     public void ResumeJob(string jobName)
     {
         if (_pauseGates.TryGetValue(jobName, out var gate))
-            gate.Set(); // unblock
+            gate.Set();
     }
 
     /// <summary>Stops a job immediately via CancellationToken.</summary>
@@ -87,23 +142,12 @@ public class BackupManager
 
     private void RunJob(BackupJob job)
     {
-        // Block if business software detected
-        if (_detector != null && _detector.IsRunning())
-        {
-            Logger.Instance.Log(new LogEntry
-            {
-                Name = job.Name,
-                FileSource = "",
-                FileTarget = "",
-                FileSize = 0,
-                FileTransferTime = -1,
-                Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            });
-            return;
-        }
-
         var cts = new CancellationTokenSource();
         var gate = new ManualResetEventSlim(true); // starts as "running"
+
+        // If business software already running, start paused
+        if (_businessSoftwarePaused)
+            gate.Reset();
 
         _cts[job.Name] = cts;
         _pauseGates[job.Name] = gate;
