@@ -9,17 +9,20 @@ public class BackupPipelineTests : IDisposable
     private readonly string _src;
     private readonly string _dst;
     private readonly string _logs;
+    private readonly string _states;
 
     public BackupPipelineTests()
     {
         _src = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         _dst = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         _logs = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        _states = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_src);
         Directory.CreateDirectory(_dst);
         Directory.CreateDirectory(_logs);
+        Directory.CreateDirectory(_states);
         Logger.Instance.SetLogDirectory(_logs);
-        StateManager.Instance.SetStateDirectory(_logs);
+        StateManager.Instance.SetStateDirectory(_states);
         StateManager.Instance.ClearStates();
     }
 
@@ -30,6 +33,7 @@ public class BackupPipelineTests : IDisposable
         Directory.Delete(_src, recursive: true);
         Directory.Delete(_dst, recursive: true);
         Directory.Delete(_logs, recursive: true);
+        Directory.Delete(_states, recursive: true);
     }
 
     private BackupJob MakeJob(string name = "job1")
