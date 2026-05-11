@@ -14,6 +14,7 @@ public class BackupManager
     public static BackupManager Instance => _instance.Value;
 
     private readonly List<BackupJob> _jobs = [];
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _cts = new();
 
     // CancellationTokenSource per job — used for Stop
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _cts = new();
@@ -81,6 +82,12 @@ public class BackupManager
         }
     }
 
+    public void CancelJob(string jobName)
+    {
+        if (_cts.TryGetValue(jobName, out var cts))
+            cts.Cancel();
+    }
+
     public void AddJob(BackupJob job) => _jobs.Add(job);
 
     public void RemoveJob(int index)
@@ -143,6 +150,7 @@ public class BackupManager
     private void RunJob(BackupJob job)
     {
         var cts = new CancellationTokenSource();
+<<<<<<< HEAD
         var gate = new ManualResetEventSlim(true); // starts as "running"
 
         // If business software already running, start paused
@@ -163,6 +171,15 @@ public class BackupManager
             _cts.TryRemove(job.Name, out _);
             _pauseGates.TryRemove(job.Name, out _);
         }
+=======
+        _cts[job.Name] = cts;
+
+        var strategy = GetStrategy(job.Type);
+        var state = new BackupState { Name = job.Name };
+        strategy.Execute(job, state, cts.Token);
+
+        _cts.TryRemove(job.Name, out _);
+>>>>>>> fac1da1 (fix: resolve merge conflict in BackupPipelineTests)
     }
 
     private static IBackupStrategy GetStrategy(BackupType type) => type switch
