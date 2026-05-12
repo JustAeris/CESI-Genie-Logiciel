@@ -171,6 +171,36 @@ All configuration and log files are stored in `%AppData%\EasySave\`.
 `FileTransferTime` and `EncryptionTime` are in milliseconds. `EncryptionTime` = 0 (no encryption), > 0 (duration), < 0 (error).
 
 ---
+## Déploiement Docker (logs centralisés)
+
+EasySave v3.0 supporte la centralisation des logs vers un serveur Docker distant.
+
+### Démarrer le serveur de logs
+
+```bash
+docker-compose up -d
+```
+
+### Configuration
+
+Dans `config.json`, configurez la destination des logs :
+
+```json
+{
+  "LogDestination": "both",
+  "LogServerUrl": "http://localhost:5000/logs"
+}
+```
+
+| Valeur | Description |
+|--------|-------------|
+| `local` | Logs locaux uniquement (défaut) |
+| `remote` | Logs distants uniquement |
+| `both` | Logs locaux ET distants |
+
+### Mode dégradé
+Si le serveur Docker est inaccessible, les logs locaux sont **toujours garantis**.
+---
 
 ## UML diagrams
 
