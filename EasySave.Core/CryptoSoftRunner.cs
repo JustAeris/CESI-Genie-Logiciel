@@ -7,7 +7,6 @@ namespace EasySave.Core;
 /// </summary>
 public class CryptoSoftRunner : ICryptoService
 {
-<<<<<<< HEAD
     // Mono-instance guard: only one cryptosoft.exe at a time across all threads
     private static readonly SemaphoreSlim _mutex = new(1, 1);
 
@@ -20,30 +19,6 @@ public class CryptoSoftRunner : ICryptoService
     public long Encrypt(string filePath)
     {
         _mutex.Wait();
-=======
-<<<<<<< HEAD
-    // SemaphoreSlim(1,1) — only one call to cryptosoft.exe at a time
-    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-
-    // Run cryptosoft.exe and return execution time in ms (negative = error)
-    public long Encrypt(string filePath)
-    {
-        _semaphore.Wait();
-=======
-    // Mono-instance guard: only one cryptosoft.exe at a time across all threads
-    private static readonly SemaphoreSlim _mutex = new(1, 1);
-
-    /// <summary>
-    /// Encrypts a file using cryptosoft.exe.
-    /// Waits for any running instance to finish before launching.
-    /// </summary>
-    /// <param name="filePath">Path to the file to encrypt.</param>
-    /// <returns>Execution time in ms, or -1 on error.</returns>
-    public long Encrypt(string filePath)
-    {
-        _mutex.Wait();
->>>>>>> cf6a5c0 (feat(T7): CryptoSoft mono-instance with SemaphoreSlim + tests)
->>>>>>> feature/v3-play-pause-stop
         try
         {
             var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -70,16 +45,7 @@ public class CryptoSoftRunner : ICryptoService
         }
         finally
         {
-<<<<<<< HEAD
             _mutex.Release();
-=======
-<<<<<<< HEAD
-            // Always release the semaphore
-            _semaphore.Release();
-=======
-            _mutex.Release();
->>>>>>> cf6a5c0 (feat(T7): CryptoSoft mono-instance with SemaphoreSlim + tests)
->>>>>>> feature/v3-play-pause-stop
         }
     }
 }
