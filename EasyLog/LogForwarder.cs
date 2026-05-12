@@ -1,4 +1,4 @@
-﻿namespace EasyLog;
+namespace EasyLog;
 
 /// <summary>
 /// Forwards log entries to a remote Docker log server via HTTP.
@@ -16,10 +16,6 @@ public class LogForwarder
         _serverUrl = serverUrl;
     }
 
-    /// <summary>
-    /// Sends a log entry to the remote server asynchronously.
-    /// Never throws — local logging is always guaranteed.
-    /// </summary>
     public async Task ForwardAsync(LogEntry entry)
     {
         try
@@ -39,7 +35,6 @@ public class LogForwarder
             var json = System.Text.Json.JsonSerializer.Serialize(payload);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            // Fire-and-forget with timeout
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             await _httpClient.PostAsync(_serverUrl, content, cts.Token);
         }

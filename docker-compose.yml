@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  log-server:
+    image: python:3.11-slim
+    container_name: easysave-log-server-v3
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+    working_dir: /app
+    environment:
+      - LOG_DIR=/app/logs
+      - APP_VERSION=3.0
+    command: python server.py
+    restart: unless-stopped
