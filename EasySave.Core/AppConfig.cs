@@ -12,4 +12,13 @@ public class AppConfig
     // Max file size (in KB) that can be transferred simultaneously across jobs.
     // 0 = no restriction.
     public int LargeFileSizeKb { get; set; } = 0;
+
+    // Log destination: "local" | "remote" | "both"
+    public string LogDestination { get; set; } = "local";
+
+    // Remote log server URL (Docker)
+    public string LogServerUrl { get; set; } = "http://localhost:5000/logs";
+
+    // Business software name to detect
+    public string BusinessSoftwareName { get; set; } = "";
 }
