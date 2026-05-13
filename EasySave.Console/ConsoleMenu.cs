@@ -170,6 +170,10 @@ public class ConsoleMenu
         }
         ConfigManager.Instance.Config.LogDestination = choice;
         ConfigManager.Instance.Save();
+        Logger.Instance.SetLogDestination(choice);
+        Logger.Instance.SetForwarder(choice != "local"
+            ? new LogForwarder(ConfigManager.Instance.Config.LogServerUrl)
+            : null);
         System.Console.WriteLine("  Log destination updated.");
     }
 
@@ -179,6 +183,8 @@ public class ConsoleMenu
         var name = System.Console.ReadLine()?.Trim() ?? "";
         ConfigManager.Instance.Config.BusinessSoftwareName = name;
         ConfigManager.Instance.Save();
+        BackupManager.Instance.SetDetector(
+            string.IsNullOrWhiteSpace(name) ? null : new ProcessDetector(name));
         System.Console.WriteLine("  Business software updated.");
     }
 

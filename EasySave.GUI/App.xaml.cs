@@ -26,6 +26,15 @@ public partial class App : Application
         Logger.Instance.SetSerializer(serializer);
         StateManager.Instance.SetSerializer(serializer);
 
+        var cfg = ConfigManager.Instance.Config;
+
+        if (!string.IsNullOrWhiteSpace(cfg.BusinessSoftwareName))
+            BackupManager.Instance.SetDetector(new ProcessDetector(cfg.BusinessSoftwareName));
+
+        Logger.Instance.SetLogDestination(cfg.LogDestination);
+        if (cfg.LogDestination != "local")
+            Logger.Instance.SetForwarder(new LogForwarder(cfg.LogServerUrl));
+
         if (e.Args.Length > 0)
         {
             // CLI mode — run jobs and exit
