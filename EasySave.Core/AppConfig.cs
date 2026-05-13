@@ -9,6 +9,10 @@ public class AppConfig
     // Example: [".pdf", ".docx"]
     public List<string> PriorityExtensions { get; set; } = [];
 
+    // File extensions to encrypt with CryptoSoft after transfer.
+    // Empty = no encryption.
+    public List<string> EncryptedExtensions { get; set; } = [];
+
     // Max file size (in KB) that can be transferred simultaneously across jobs.
     // 0 = no restriction.
     public int LargeFileSizeKb { get; set; } = 0;
