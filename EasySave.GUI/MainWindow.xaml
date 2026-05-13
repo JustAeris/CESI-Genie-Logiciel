@@ -37,7 +37,7 @@
                                FontFamily="Consolas" FontSize="18"
                                FontWeight="Bold"/>
                 </StackPanel>
-                <TextBlock Grid.Column="1" Text="EasySave v2.0"
+                <TextBlock Grid.Column="1" Text="EasySave v3.0"
                            Foreground="#444444" FontFamily="Consolas"
                            FontSize="12" VerticalAlignment="Center"
                            Margin="10,0"/>
