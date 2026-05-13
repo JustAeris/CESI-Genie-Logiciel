@@ -1,5 +1,12 @@
 using EasySave.CryptoSoft;
 
+using var mutex = new Mutex(initiallyOwned: false, "Global\\EasySaveCryptoSoft");
+if (!mutex.WaitOne(0))
+{
+    Console.Error.WriteLine("CryptoSoft is already running.");
+    return -1;
+}
+
 if (args.Length == 0)
 {
     Console.Error.WriteLine("Usage: cryptosoft <filepath> [--decrypt]");
