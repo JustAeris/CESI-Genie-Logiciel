@@ -31,10 +31,11 @@ public class BackupManager
     /// When detected: all active jobs are paused.
     /// When gone: all paused jobs are resumed.
     /// </summary>
-    public void SetDetector(IBusinessSoftwareDetector detector)
+    public void SetDetector(IBusinessSoftwareDetector? detector)
     {
         _detector = detector;
         _businessSoftwareTimer?.Dispose();
+        if (detector == null) return;
         _businessSoftwareTimer = new Timer(_ => PollBusinessSoftware(), null,
             TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
