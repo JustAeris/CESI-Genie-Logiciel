@@ -100,7 +100,14 @@ public abstract class BackupStrategyBase
 
         long encryptionTime = 0;
         if (_cryptoService != null)
-            encryptionTime = _cryptoService.Encrypt(dst);
+        {
+            var encryptedExtensions = ConfigManager.Instance.Config.EncryptedExtensions;
+            var ext = Path.GetExtension(src);
+            bool shouldEncrypt = encryptedExtensions.Count == 0
+                || encryptedExtensions.Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
+            if (shouldEncrypt)
+                encryptionTime = _cryptoService.Encrypt(dst);
+        }
 
         var entry = new LogEntry
         {

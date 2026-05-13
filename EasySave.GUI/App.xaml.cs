@@ -28,6 +28,8 @@ public partial class App : Application
 
         var cfg = ConfigManager.Instance.Config;
 
+        BackupManager.Instance.CryptoService = new CryptoSoftRunner();
+
         if (!string.IsNullOrWhiteSpace(cfg.BusinessSoftwareName))
             BackupManager.Instance.SetDetector(new ProcessDetector(cfg.BusinessSoftwareName));
 

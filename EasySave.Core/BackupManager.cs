@@ -127,6 +127,8 @@ public class BackupManager
         return PlaybackState.Running;
     }
 
+    public ICryptoService? CryptoService { get; set; }
+
     // --- Run ---
 
     public void RunJob(int index)
@@ -157,6 +159,8 @@ public class BackupManager
         try
         {
             var strategy = GetStrategy(job.Type);
+            if (CryptoService != null)
+                strategy.SetCryptoService(CryptoService);
             var state = new BackupState { Name = job.Name, PlaybackState = PlaybackState.Running };
             strategy.Execute(job, state, cts.Token, gate);
         }
