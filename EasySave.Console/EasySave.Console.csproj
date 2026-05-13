@@ -2,7 +2,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EasySave.Core\EasySave.Core.csproj" />
+    <ProjectReference Include="..\EasySave.CryptoSoft\EasySave.CryptoSoft.csproj"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <Target Name="CopyCryptoSoft" AfterTargets="Build">
+    <PropertyGroup>
+      <CryptoSoftExe>$(MSBuildThisFileDirectory)..\EasySave.CryptoSoft\bin\$(Configuration)\net10.0\cryptosoft.exe</CryptoSoftExe>
+    </PropertyGroup>
+    <Copy SourceFiles="$(CryptoSoftExe)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          ContinueOnError="true" />
+  </Target>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
