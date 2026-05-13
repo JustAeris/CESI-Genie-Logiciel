@@ -31,11 +31,11 @@ public class LocalizationService : ViewModelBase
     public string LangToggle   => _language == GuiLanguage.FR ? "EN" : "FR";
 
     // --- Backup jobs view ---
-    public string BackupsTitle   => T("// SAUVEGARDES", "// BACKUPS");
-    public string RunJob         => T("▶ RUN",          "▶ RUN");
-    public string RunAll         => T("▶▶ RUN ALL",     "▶▶ RUN ALL");
-    public string AddJob         => T("+ ADD",          "+ ADD");
-    public string RemoveJob      => T("✕ DEL",          "✕ DEL");
+    public string BackupsTitle   => T("// SAUVEGARDES",  "// BACKUPS");
+    public string RunJob         => T("▶ LANCER",        "▶ RUN");
+    public string RunAll         => T("▶▶ TOUT LANCER",  "▶▶ RUN ALL");
+    public string AddJob         => T("+ AJOUTER",       "+ ADD");
+    public string RemoveJob      => T("✕ SUPPR",         "✕ DEL");
 
     // --- Add job dialog ---
     public string AddJobTitle    => T("Ajouter une sauvegarde", "Add backup");
@@ -47,13 +47,14 @@ public class LocalizationService : ViewModelBase
 
     // --- Settings view ---
     public string SettingsTitle           => T("// PARAMÈTRES",                             "// SETTINGS");
-    public string LogFormatLabel          => T("> LOG FORMAT",                              "> LOG FORMAT");
-    public string LogDestinationLabel     => T("> LOG DESTINATION",                        "> LOG DESTINATION");
-    public string LogServerUrlLabel       => T("> LOG SERVER URL",                         "> LOG SERVER URL");
+    public string LogFormatLabel          => T("> FORMAT DES LOGS",                         "> LOG FORMAT");
+    public string LogDestinationLabel     => T("> DESTINATION DES LOGS",                   "> LOG DESTINATION");
+    public string LogServerUrlLabel       => T("> URL SERVEUR DE LOGS",                    "> LOG SERVER URL");
     public string BusinessSoftwareLabel   => T("> LOGICIEL MÉTIER",                        "> BUSINESS SOFTWARE");
     public string LargeFileLabel          => T("> SEUIL GROS FICHIERS (KB, 0 = désactivé)","> LARGE FILE THRESHOLD (KB, 0 = disabled)");
     public string PriorityExtLabel        => T("> EXTENSIONS PRIORITAIRES",                "> PRIORITY EXTENSIONS");
     public string EncryptedExtLabel       => T("> EXTENSIONS CRYPTÉES",                    "> ENCRYPTED EXTENSIONS");
+    public string AddExtension            => T("+ AJOUTER",                                 "+ ADD");
     public string SaveButton              => T("[ SAUVEGARDER ]",                          "[ SAVE ]");
 
     // --- Status bar ---

@@ -124,7 +124,8 @@
                              Background="#111111" Foreground="#F0F0F0"
                              BorderBrush="#333333" FontFamily="Consolas"
                              CaretBrush="#F5D800"/>
-                    <Button Content="+ ADD" Command="{Binding AddPriorityExtensionCommand}"
+                    <Button Content="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=AddExtension}"
+                            Command="{Binding AddPriorityExtensionCommand}"
                             Style="{StaticResource ActionButtonStyle}"/>
                 </StackPanel>
                 <ListBox ItemsSource="{Binding PriorityExtensions}" Height="80"
@@ -156,7 +157,8 @@
                              Background="#111111" Foreground="#F0F0F0"
                              BorderBrush="#333333" FontFamily="Consolas"
                              CaretBrush="#F5D800"/>
-                    <Button Content="+ ADD" Command="{Binding AddEncryptedExtensionCommand}"
+                    <Button Content="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=AddExtension}"
+                            Command="{Binding AddEncryptedExtensionCommand}"
                             Style="{StaticResource ActionButtonStyle}"/>
                 </StackPanel>
                 <ListBox ItemsSource="{Binding EncryptedExtensions}" Height="80"
