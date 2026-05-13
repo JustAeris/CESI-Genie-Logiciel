@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
 using EasySave.Core;
 using EasySave.GUI.MVVM;
 using EasySave.GUI.MVVM.Views;
@@ -8,16 +10,12 @@ using EasySave.GUI.Services;
 
 namespace EasySave.GUI.ViewModels;
 
-/// <summary>
-/// ViewModel for the backup jobs view.
-/// Handles listing, adding, removing and running backup jobs.
-/// </summary>
 public class BackupJobsViewModel : ViewModelBase
 {
-    public ObservableCollection<BackupJob> Jobs { get; } = new();
+    public ObservableCollection<JobViewModel> Jobs { get; } = new();
 
-    private BackupJob? _selectedJob;
-    public BackupJob? SelectedJob
+    private JobViewModel? _selectedJob;
+    public JobViewModel? SelectedJob
     {
         get => _selectedJob;
         set => SetField(ref _selectedJob, value);
@@ -27,11 +25,16 @@ public class BackupJobsViewModel : ViewModelBase
     public RelayCommand RunAllCommand { get; }
     public RelayCommand AddJobCommand { get; }
     public RelayCommand RemoveJobCommand { get; }
+    public RelayCommand PauseJobCommand { get; }
+    public RelayCommand ResumeJobCommand { get; }
+    public RelayCommand StopJobCommand { get; }
+
+    private readonly DispatcherTimer _refreshTimer;
 
     public BackupJobsViewModel()
     {
         foreach (var job in ConfigManager.Instance.Jobs)
-            Jobs.Add(job);
+            Jobs.Add(new JobViewModel(job));
 
         RunJobCommand = new RelayCommand(
             _ => RunSelected(),
@@ -46,21 +49,49 @@ public class BackupJobsViewModel : ViewModelBase
         RemoveJobCommand = new RelayCommand(
             _ => RemoveSelected(),
             _ => SelectedJob != null);
+
+        PauseJobCommand = new RelayCommand(
+            p => { if (p is JobViewModel vm) BackupManager.Instance.PauseJob(vm.Name); },
+            p => p is JobViewModel vm && vm.PlaybackState == PlaybackState.Running);
+
+        ResumeJobCommand = new RelayCommand(
+            p => { if (p is JobViewModel vm) BackupManager.Instance.ResumeJob(vm.Name); },
+            p => p is JobViewModel vm && vm.PlaybackState == PlaybackState.Paused);
+
+        StopJobCommand = new RelayCommand(
+            p => { if (p is JobViewModel vm) BackupManager.Instance.StopJob(vm.Name); },
+            p => p is JobViewModel vm && vm.PlaybackState != PlaybackState.Stopped);
+
+        _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _refreshTimer.Tick += RefreshJobStates;
+        _refreshTimer.Start();
+    }
+
+    private void RefreshJobStates(object? sender, EventArgs e)
+    {
+        var states = StateManager.Instance.GetAll().ToDictionary(s => s.Name);
+        foreach (var vm in Jobs)
+        {
+            vm.PlaybackState = BackupManager.Instance.GetPlaybackState(vm.Name);
+            if (states.TryGetValue(vm.Name, out var state))
+                vm.Progression = state.Progression;
+        }
+        CommandManager.InvalidateRequerySuggested();
     }
 
     private void RunSelected()
     {
         if (SelectedJob == null) return;
-        var job = SelectedJob;
-        int idx = Jobs.IndexOf(job) + 1;
-        StatusService.Instance.SetRunning(job.Name);
+        var vm = SelectedJob;
+        int idx = Jobs.IndexOf(vm) + 1;
+        StatusService.Instance.SetRunning(vm.Name);
         Task.Run(() =>
         {
             var sw = Stopwatch.StartNew();
             BackupManager.Instance.RunJob(idx);
             sw.Stop();
-            StatusService.Instance.SetDone(job.Name, sw.ElapsedMilliseconds);
-            ToastNotification.Show("[ DONE ] Sauvegarde terminée", $"{job.Name} — {sw.ElapsedMilliseconds} ms");
+            StatusService.Instance.SetDone(vm.Name, sw.ElapsedMilliseconds);
+            ToastNotification.Show("[ DONE ] Sauvegarde terminée", $"{vm.Name} — {sw.ElapsedMilliseconds} ms");
         });
     }
 
@@ -69,7 +100,7 @@ public class BackupJobsViewModel : ViewModelBase
         if (SelectedJob == null) return;
         int idx = Jobs.IndexOf(SelectedJob);
         Jobs.RemoveAt(idx);
-        BackupManager.Instance.RemoveJob(idx);
+        BackupManager.Instance.RemoveJob(idx + 1);
         ConfigManager.Instance.Save();
     }
 
@@ -79,7 +110,7 @@ public class BackupJobsViewModel : ViewModelBase
         if (dialog.ShowDialog() == true)
         {
             var job = dialog.Result;
-            Jobs.Add(job);
+            Jobs.Add(new JobViewModel(job));
             BackupManager.Instance.AddJob(job);
             ConfigManager.Instance.Save();
         }

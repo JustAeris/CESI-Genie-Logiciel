@@ -1,5 +1,6 @@
 using EasySave.GUI.MVVM;
 using EasySave.GUI.Services;
+using EasySave.Console;
 
 namespace EasySave.GUI.ViewModels;
 
@@ -13,6 +14,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public RelayCommand NavigateToJobsCommand { get; }
     public RelayCommand NavigateToSettingsCommand { get; }
+    public RelayCommand ToggleLanguageCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -21,6 +23,15 @@ public class MainWindowViewModel : ViewModelBase
 
         NavigateToSettingsCommand = new RelayCommand(_ =>
             Navigation.NavigateTo(new SettingsViewModel()));
+
+        ToggleLanguageCommand = new RelayCommand(_ =>
+        {
+            var next = LocalizationService.Instance.Language == GuiLanguage.FR
+                ? GuiLanguage.EN
+                : GuiLanguage.FR;
+            LocalizationService.Instance.SetLanguage(next);
+            Status.SetIdle(); // refresh status bar text
+        });
 
         // Default view
         Navigation.NavigateTo(new BackupJobsViewModel());

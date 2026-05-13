@@ -10,17 +10,17 @@ public class StatusService : ViewModelBase
     private static readonly Lazy<StatusService> _instance = new(() => new StatusService());
     public static StatusService Instance => _instance.Value;
 
-    private string _message = "[ IDLE ] — Prêt";
+    private string _message = "";
     public string Message
     {
         get => _message;
         set => SetField(ref _message, value);
     }
 
-    private StatusService() { }
+    private StatusService() => SetIdle();
 
-    public void SetIdle() => Message = "[ IDLE ] — Prêt";
-    public void SetRunning(string jobName) => Message = $"[ RUN  ] — {jobName} en cours...";
-    public void SetDone(string jobName, long ms) => Message = $"[ DONE ] — {jobName} terminé en {ms} ms";
-    public void SetError(string jobName) => Message = $"[ ERR  ] — {jobName} échoué";
+    public void SetIdle() => Message = LocalizationService.Instance.StatusIdle;
+    public void SetRunning(string jobName) => Message = $"[ RUN  ] — {jobName} {LocalizationService.Instance.StatusRunning}";
+    public void SetDone(string jobName, long ms) => Message = $"[ DONE ] — {jobName} {LocalizationService.Instance.StatusDone} {ms} ms";
+    public void SetError(string jobName) => Message = $"[ ERR  ] — {jobName} {LocalizationService.Instance.StatusError}";
 }

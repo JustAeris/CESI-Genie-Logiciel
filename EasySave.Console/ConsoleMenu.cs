@@ -112,31 +112,103 @@ public class ConsoleMenu
         System.Console.WriteLine(Resources.Get("job.done"));
     }
 
-    // Settings sub-menu: display current log format and let the user switch JSON ↔ XML.
-    // After change: saves config + rewires Logger and StateManager (Strategy swap at runtime).
     private void ShowSettings()
     {
         System.Console.WriteLine();
         System.Console.WriteLine(Resources.Get("settings.title"));
-        System.Console.WriteLine($"  {Resources.Get("settings.format")}: {ConfigManager.Instance.LogFormat.ToUpperInvariant()}");
-        System.Console.Write(Resources.Get("settings.format.choose"));
+        System.Console.WriteLine($"  {Resources.Get("settings.format")}: {ConfigManager.Instance.Config.LogFormat.ToUpperInvariant()}");
+        System.Console.WriteLine($"  Log destination: {ConfigManager.Instance.Config.LogDestination}");
+        System.Console.WriteLine($"  Business software: {ConfigManager.Instance.Config.BusinessSoftwareName}");
+        System.Console.WriteLine($"  Large file threshold: {ConfigManager.Instance.Config.LargeFileSizeKb} KB");
+        System.Console.WriteLine($"  Priority extensions: {string.Join(", ", ConfigManager.Instance.Config.PriorityExtensions)}");
 
+        System.Console.WriteLine();
+        System.Console.WriteLine("  1. Change log format (JSON/XML)");
+        System.Console.WriteLine("  2. Change log destination (local/remote/both)");
+        System.Console.WriteLine("  3. Change business software name");
+        System.Console.WriteLine("  4. Change large file threshold (KB)");
+        System.Console.WriteLine("  5. Change priority extensions");
+        System.Console.WriteLine("  6. Back");
+        System.Console.Write(Resources.Get("menu.choice"));
+
+        var choice = System.Console.ReadLine()?.Trim() ?? "";
+        switch (choice)
+        {
+            case "1": ChangeLogFormat(); break;
+            case "2": ChangeLogDestination(); break;
+            case "3": ChangeBusinessSoftware(); break;
+            case "4": ChangeLargeFileThreshold(); break;
+            case "5": ChangePriorityExtensions(); break;
+        }
+    }
+
+    private void ChangeLogFormat()
+    {
+        System.Console.Write(Resources.Get("settings.format.choose"));
         var choice = System.Console.ReadLine()?.Trim().ToLowerInvariant() ?? "";
         if (choice != "json" && choice != "xml")
         {
             System.Console.WriteLine(Resources.Get("settings.format.invalid"));
             return;
         }
-
         ConfigManager.Instance.Config.LogFormat = choice;
         ConfigManager.Instance.Save();
-
-        // Rewire Strategy at runtime — no restart needed.
         ILogSerializer serializer = choice == "xml" ? new XmlLogSerializer() : new JsonLogSerializer();
         Logger.Instance.SetSerializer(serializer);
         StateManager.Instance.SetSerializer(serializer);
-
         System.Console.WriteLine(Resources.Get("settings.format.updated"));
+    }
+
+    private void ChangeLogDestination()
+    {
+        System.Console.Write("  Log destination (local/remote/both): ");
+        var choice = System.Console.ReadLine()?.Trim().ToLowerInvariant() ?? "";
+        if (choice != "local" && choice != "remote" && choice != "both")
+        {
+            System.Console.WriteLine(Resources.Get("error.invalid"));
+            return;
+        }
+        ConfigManager.Instance.Config.LogDestination = choice;
+        ConfigManager.Instance.Save();
+        Logger.Instance.SetLogDestination(choice);
+        Logger.Instance.SetForwarder(choice != "local"
+            ? new LogForwarder(ConfigManager.Instance.Config.LogServerUrl)
+            : null);
+        System.Console.WriteLine("  Log destination updated.");
+    }
+
+    private void ChangeBusinessSoftware()
+    {
+        System.Console.Write("  Business software name: ");
+        var name = System.Console.ReadLine()?.Trim() ?? "";
+        ConfigManager.Instance.Config.BusinessSoftwareName = name;
+        ConfigManager.Instance.Save();
+        BackupManager.Instance.SetDetector(
+            string.IsNullOrWhiteSpace(name) ? null : new ProcessDetector(name));
+        System.Console.WriteLine("  Business software updated.");
+    }
+
+    private void ChangeLargeFileThreshold()
+    {
+        System.Console.Write("  Large file threshold (KB, 0 = no limit): ");
+        if (!int.TryParse(System.Console.ReadLine(), out int kb) || kb < 0)
+        {
+            System.Console.WriteLine(Resources.Get("error.invalid"));
+            return;
+        }
+        ConfigManager.Instance.Config.LargeFileSizeKb = kb;
+        ConfigManager.Instance.Save();
+        System.Console.WriteLine("  Threshold updated.");
+    }
+
+    private void ChangePriorityExtensions()
+    {
+        System.Console.Write("  Priority extensions (comma-separated, e.g. .pdf,.docx): ");
+        var input = System.Console.ReadLine()?.Trim() ?? "";
+        var extensions = input.Split(',').Select(e => e.Trim()).Where(e => !string.IsNullOrEmpty(e)).ToList();
+        ConfigManager.Instance.Config.PriorityExtensions = extensions;
+        ConfigManager.Instance.Save();
+        System.Console.WriteLine("  Priority extensions updated.");
     }
 
     private void ChangeLanguage()

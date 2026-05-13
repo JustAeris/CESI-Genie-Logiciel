@@ -1,0 +1,33 @@
+services:
+  log-server:
+    image: python:3.11-slim
+    container_name: easysave-log-server-v3
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server.py:/app/server.py:ro
+      - ./logs:/app/logs
+    working_dir: /app
+    environment:
+      - LOG_DIR=/app/logs
+      - APP_VERSION=3.0
+    command: python server.py
+    restart: unless-stopped
+
+  easysave-console:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: easysave-console-v3
+    stdin_open: true
+    tty: true
+    volumes:
+      - easysave-data:/data
+    environment:
+      - EASYSAVE_CONFIG=/data/config/config.json
+      - EASYSAVE_LOGS=/data/logs
+    depends_on:
+      - log-server
+
+volumes:
+  easysave-data:

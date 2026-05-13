@@ -21,6 +21,8 @@ public class LoggerTests : IDisposable
     {
         // Reset Logger state BEFORE deleting temp dir so concurrent tests never hit a deleted path.
         Logger.Instance.SetSerializer(new JsonLogSerializer());
+        Logger.Instance.SetForwarder(null);
+        Logger.Instance.SetLogDestination("local");
         Logger.Instance.SetLogDirectory(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "EasySave", "logs"));
