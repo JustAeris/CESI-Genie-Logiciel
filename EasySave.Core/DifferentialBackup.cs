@@ -3,11 +3,7 @@ namespace EasySave.Core;
 public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
 {
     /// <summary>Copies only files that are new or modified since the last backup.</summary>
-<<<<<<< HEAD
     public void Execute(BackupJob job, BackupState state, CancellationToken token = default, ManualResetEventSlim? pauseGate = null)
-=======
-    public void Execute(BackupJob job, BackupState state, CancellationToken token = default)
->>>>>>> fac1da1 (fix: resolve merge conflict in BackupPipelineTests)
     {
         var allFiles = Directory.GetFiles(job.SourceDir, "*", SearchOption.AllDirectories);
 
@@ -23,10 +19,6 @@ public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
         state.SizeLeft = state.TotalFilesSize;
         state.State = "ACTIVE";
 
-<<<<<<< HEAD
-=======
-        // Sort priority files first, then bulk-register them before any copy starts.
->>>>>>> fac1da1 (fix: resolve merge conflict in BackupPipelineTests)
         var priorityExts = ConfigManager.Instance.Config.PriorityExtensions;
         if (priorityExts.Count > 0)
             filesToCopy = [.. filesToCopy.OrderByDescending(f =>
@@ -37,15 +29,9 @@ public class DifferentialBackup : BackupStrategyBase, IBackupStrategy
         foreach (var src in filesToCopy)
         {
             token.ThrowIfCancellationRequested();
-<<<<<<< HEAD
             WaitIfBlockedByPriority(src);
             var dst = BuildDestPath(src, job.SourceDir, job.TargetDir);
             CopyFile(src, dst, state, token, pauseGate);
-=======
-            WaitIfBlockedByPriority(src); // blocks non-priority if priority files are pending
-            var dst = BuildDestPath(src, job.SourceDir, job.TargetDir);
-            CopyFile(src, dst, state, token);
->>>>>>> fac1da1 (fix: resolve merge conflict in BackupPipelineTests)
         }
 
         state.State = "END";

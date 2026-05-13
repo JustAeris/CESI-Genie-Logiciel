@@ -55,7 +55,6 @@ public abstract class BackupStrategyBase
         }
     }
 
-<<<<<<< HEAD
     protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default, ManualResetEventSlim? pauseGate = null)
     {
         token.ThrowIfCancellationRequested();
@@ -63,11 +62,6 @@ public abstract class BackupStrategyBase
         // Pause point — waits here until ResumeJob() is called (T5)
         pauseGate?.Wait(token);
 
-=======
-    protected void CopyFile(string src, string dst, BackupState state, CancellationToken token = default)
-    {
-        token.ThrowIfCancellationRequested();
->>>>>>> fac1da1 (fix: resolve merge conflict in BackupPipelineTests)
         Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
 
         state.SourceFilePath = src;
