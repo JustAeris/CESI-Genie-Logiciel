@@ -3,13 +3,17 @@ WORKDIR /src
 
 COPY EasyLog/EasyLog.csproj EasyLog/
 COPY EasySave.Core/EasySave.Core.csproj EasySave.Core/
+COPY EasySave.CryptoSoft/EasySave.CryptoSoft.csproj EasySave.CryptoSoft/
 COPY EasySave.Console/EasySave.Console.csproj EasySave.Console/
 RUN dotnet restore EasySave.Console/EasySave.Console.csproj
 
 COPY EasyLog/ EasyLog/
 COPY EasySave.Core/ EasySave.Core/
+COPY EasySave.CryptoSoft/ EasySave.CryptoSoft/
 COPY EasySave.Console/ EasySave.Console/
 RUN dotnet publish EasySave.Console/EasySave.Console.csproj \
+    -c Release -o /app/publish --no-restore
+RUN dotnet publish EasySave.CryptoSoft/EasySave.CryptoSoft.csproj \
     -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
