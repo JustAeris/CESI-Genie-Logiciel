@@ -19,8 +19,8 @@ public class StatusService : ViewModelBase
 
     private StatusService() => SetIdle();
 
-    public void SetIdle()                      => Message = LocalizationService.Instance.StatusIdle;
-    public void SetRunning(string jobName)     => Message = $"[ RUN  ] — {jobName} {LocalizationService.Instance.StatusRunning}";
+    public void SetIdle() => Message = LocalizationService.Instance.StatusIdle;
+    public void SetRunning(string jobName) => Message = $"[ RUN  ] — {jobName} {LocalizationService.Instance.StatusRunning}";
     public void SetDone(string jobName, long ms) => Message = $"[ DONE ] — {jobName} {LocalizationService.Instance.StatusDone} {ms} ms";
-    public void SetError(string jobName)       => Message = $"[ ERR  ] — {jobName} {LocalizationService.Instance.StatusError}";
+    public void SetError(string jobName) => Message = $"[ ERR  ] — {jobName} {LocalizationService.Instance.StatusError}";
 }
