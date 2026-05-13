@@ -7,6 +7,9 @@ namespace EasyLog;
 /// </summary>
 public class LogEntry
 {
+    /// <summary>Hostname of the machine that produced this entry.</summary>
+    public string Machine { get; set; } = Environment.MachineName;
+
     /// <summary>Name of the backup job that produced this entry.</summary>
     public string Name { get; set; } = "";
 

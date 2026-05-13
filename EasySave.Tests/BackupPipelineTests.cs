@@ -26,6 +26,8 @@ public class BackupPipelineTests : IDisposable
     public void Dispose()
     {
         StateManager.Instance.ClearStates();
+        Logger.Instance.SetForwarder(null);
+        Logger.Instance.SetLogDestination("local");
         Logger.Instance.SetLogDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
         Directory.Delete(_src, recursive: true);
         Directory.Delete(_dst, recursive: true);
@@ -78,7 +80,7 @@ public class BackupPipelineTests : IDisposable
         MakeFullBackup(new MockCryptoService(returnValue: -1))
             .Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, $"{DateTime.Now:yyyy-MM-dd}*.json").FirstOrDefault();
         Assert.NotNull(logFile);
         Assert.Contains("-1", File.ReadAllText(logFile));
     }
@@ -92,7 +94,7 @@ public class BackupPipelineTests : IDisposable
         MakeFullBackup(new MockCryptoService(returnValue: 42))
             .Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, $"{DateTime.Now:yyyy-MM-dd}*.json").FirstOrDefault();
         Assert.NotNull(logFile);
         Assert.Contains("42", File.ReadAllText(logFile));
     }
@@ -105,7 +107,7 @@ public class BackupPipelineTests : IDisposable
 
         MakeFullBackup().Execute(MakeJob(), MakeState("job1"));
 
-        var logFile = Directory.GetFiles(_logs, "*.*").FirstOrDefault();
+        var logFile = Directory.GetFiles(_logs, $"{DateTime.Now:yyyy-MM-dd}*.json").FirstOrDefault();
         Assert.NotNull(logFile);
         var content = File.ReadAllText(logFile);
         Assert.True(

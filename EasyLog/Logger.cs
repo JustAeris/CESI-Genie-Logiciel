@@ -11,8 +11,8 @@ public class Logger
     private ILogSerializer _serializer = new JsonLogSerializer(); // default: v1.0 behaviour
     private readonly object _lock = new();
 
-    // Log forwarder for remote/Docker logging (optional)
     private LogForwarder? _forwarder;
+    private string _logDestination = "local"; // "local" | "remote" | "both"
 
     private Logger()
     {
@@ -28,11 +28,9 @@ public class Logger
         Directory.CreateDirectory(_logDir);
     }
 
-    // Set the remote log forwarder
-    public void SetForwarder(LogForwarder forwarder)
-    {
-        _forwarder = forwarder;
-    }
+    public void SetForwarder(LogForwarder? forwarder) => _forwarder = forwarder;
+
+    public void SetLogDestination(string destination) => _logDestination = destination;
 
     // Dependency injection (DIP) — inject any ILogSerializer at runtime.
     public void SetSerializer(ILogSerializer serializer) => _serializer = serializer;
@@ -40,9 +38,9 @@ public class Logger
     // Thread-safe append: read → append → write.
     public void Log(LogEntry entry)
     {
+        // Always write locally — guarantees mode dégradé if remote is unreachable
         lock (_lock)
         {
-            // Always write locally
             var filePath = GetLogFilePath();
             List<LogEntry> entries = [];
 
@@ -53,8 +51,8 @@ public class Logger
             File.WriteAllText(filePath, _serializer.Serialize(entries));
         }
 
-        // Forward to remote server if configured (fire-and-forget)
-        if (_forwarder != null)
+        // Forward to Docker log server only when destination is remote or both
+        if (_forwarder != null && (_logDestination == "remote" || _logDestination == "both"))
             _ = _forwarder.ForwardAsync(entry);
     }
 
