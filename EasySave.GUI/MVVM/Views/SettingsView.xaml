@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:EasySave.GUI.MVVM.Views"
+             xmlns:svc="clr-namespace:EasySave.GUI.Services"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="800">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -21,14 +22,14 @@
 
             <!-- Titre -->
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock Text="// PARAMÈTRES" Foreground="#F5D800"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=SettingsTitle}" Foreground="#F5D800"
                            FontFamily="Consolas" FontSize="18" FontWeight="Bold"/>
                 <Rectangle Height="1" Fill="#F5D800" Margin="0,6,0,0" Opacity="0.3"/>
             </StackPanel>
 
             <!-- Format des logs -->
             <StackPanel Grid.Row="1" Margin="0,0,0,20">
-                <TextBlock Text="&gt; LOG FORMAT" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=LogFormatLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <ComboBox ItemsSource="{Binding LogFormats}"
                           SelectedItem="{Binding SelectedLogFormat}"
@@ -57,7 +58,7 @@
 
             <!-- Destination des logs -->
             <StackPanel Grid.Row="2" Margin="0,0,0,20">
-                <TextBlock Text="&gt; LOG DESTINATION" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=LogDestinationLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <ComboBox ItemsSource="{Binding LogDestinations}"
                           SelectedItem="{Binding SelectedLogDestination}"
@@ -82,7 +83,7 @@
                         </Style>
                     </ComboBox.Resources>
                 </ComboBox>
-                <TextBlock Text="&gt; LOG SERVER URL" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=LogServerUrlLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,10,0,6"/>
                 <TextBox Text="{Binding LogServerUrl, UpdateSourceTrigger=PropertyChanged}"
                          Width="350" HorizontalAlignment="Left"
@@ -93,7 +94,7 @@
 
             <!-- Logiciel métier -->
             <StackPanel Grid.Row="3" Margin="0,0,0,20">
-                <TextBlock Text="&gt; LOGICIEL MÉTIER" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=BusinessSoftwareLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <TextBox Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"
                          Width="250" HorizontalAlignment="Left"
@@ -104,7 +105,7 @@
 
             <!-- Seuil gros fichiers -->
             <StackPanel Grid.Row="4" Margin="0,0,0,20">
-                <TextBlock Text="&gt; SEUIL GROS FICHIERS (KB, 0 = désactivé)" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=LargeFileLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <TextBox Text="{Binding LargeFileSizeKb, UpdateSourceTrigger=PropertyChanged}"
                          Width="150" HorizontalAlignment="Left"
@@ -115,7 +116,7 @@
 
             <!-- Extensions prioritaires -->
             <StackPanel Grid.Row="5" Margin="0,0,0,20">
-                <TextBlock Text="&gt; EXTENSIONS PRIORITAIRES" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=PriorityExtLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBox Text="{Binding NewPriorityExtension, UpdateSourceTrigger=PropertyChanged}"
@@ -147,7 +148,7 @@
 
             <!-- Extensions à crypter -->
             <StackPanel Grid.Row="6" Margin="0,0,0,20">
-                <TextBlock Text="&gt; EXTENSIONS CRYPTÉES" Foreground="#00FF41"
+                <TextBlock Text="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=EncryptedExtLabel}" Foreground="#00FF41"
                            FontFamily="Consolas" FontSize="11" Margin="0,0,0,6"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBox Text="{Binding NewEncryptedExtension, UpdateSourceTrigger=PropertyChanged}"
@@ -178,7 +179,7 @@
             </StackPanel>
 
             <!-- Bouton Sauvegarder -->
-            <Button Grid.Row="7" Content="[ SAUVEGARDER ]" Command="{Binding SaveCommand}"
+            <Button Grid.Row="7" Content="{Binding Source={x:Static svc:LocalizationService.Instance}, Path=SaveButton}" Command="{Binding SaveCommand}"
                     Style="{StaticResource ActionButtonStyle}"
                     HorizontalAlignment="Left"/>
         </Grid>
