@@ -81,6 +81,7 @@ public class BackupManager
         }
     }
 
+
     public void AddJob(BackupJob job) => _jobs.Add(job);
 
     public void RemoveJob(int index)
