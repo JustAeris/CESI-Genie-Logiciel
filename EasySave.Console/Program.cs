@@ -19,6 +19,8 @@ StateManager.Instance.SetSerializer(serializer);
 
 var cfg = ConfigManager.Instance.Config;
 
+BackupManager.Instance.CryptoService = new CryptoSoftRunner();
+
 if (!string.IsNullOrWhiteSpace(cfg.BusinessSoftwareName))
     BackupManager.Instance.SetDetector(new ProcessDetector(cfg.BusinessSoftwareName));
 
