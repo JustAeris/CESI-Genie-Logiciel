@@ -1,26 +1,22 @@
 namespace EasySave.Core;
 
-/// <summary>
-/// Runs cryptosoft.exe to encrypt a file.
-/// A static SemaphoreSlim(1,1) ensures only one instance of cryptosoft.exe
-/// runs at a time, even across parallel backup jobs (T7).
-/// </summary>
+// Lance cryptosoft.exe pour chiffrer un fichier.
+// Un SemaphoreSlim(1,1) statique garantit qu'une seule instance de cryptosoft.exe
+// tourne à la fois, même entre des jobs de sauvegarde parallèles (T7).
 public class CryptoSoftRunner : ICryptoService
 {
-    // Mono-instance guard: only one cryptosoft.exe at a time across all threads
+    // Verrou mono-instance : une seule exécution de cryptosoft.exe autorisée à la fois sur tous les threads
     private static readonly SemaphoreSlim _mutex = new(1, 1);
 
-    /// <summary>
-    /// Encrypts a file using cryptosoft.exe.
-    /// Waits for any running instance to finish before launching.
-    /// </summary>
-    /// <param name="filePath">Path to the file to encrypt.</param>
-    /// <returns>Execution time in ms, or -1 on error.</returns>
+    // Chiffre le fichier indiqué en lançant cryptosoft.exe.
+    // Attend la fin de toute instance déjà en cours avant de démarrer.
+    // Retourne le temps d'exécution en ms, ou -1 en cas d'erreur.
     public long Encrypt(string filePath)
     {
-        _mutex.Wait();
+        _mutex.Wait(); // attend la libération si une autre instance tourne déjà
         try
         {
+            // Configure le processus pour qu'il s'exécute sans fenêtre visible
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "cryptosoft.exe",
@@ -32,19 +28,21 @@ public class CryptoSoftRunner : ICryptoService
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var process = System.Diagnostics.Process.Start(startInfo);
-            process?.WaitForExit();
+            process?.WaitForExit(); // attend la fin du chiffrement avant de continuer
 
             stopwatch.Stop();
 
-            // Exit code > 0 = success, negative = error
+            // Code de sortie > 0 = succès ; 0 ou négatif = erreur côté cryptosoft
             return process?.ExitCode > 0 ? stopwatch.ElapsedMilliseconds : -1;
         }
         catch
         {
+            // En cas d'exception (fichier introuvable, accès refusé…), on retourne -1 sans faire planter le job
             return -1;
         }
         finally
         {
+            // Libère toujours le sémaphore pour ne pas bloquer les autres jobs indéfiniment
             _mutex.Release();
         }
     }

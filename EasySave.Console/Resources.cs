@@ -1,17 +1,16 @@
 namespace EasySave.Console;
 
-/// <summary>Supported UI languages.</summary>
+// Langues d'interface supportées par la console
 public enum Language { EN, FR }
 
-/// <summary>
-/// Provides localised UI strings for EN and FR.
-/// Use <see cref="Get"/> to retrieve a string by key for the active language.
-/// </summary>
+// Fournit les chaînes d'interface localisées pour EN et FR.
+// Utiliser Get() pour récupérer une chaîne par clé dans la langue active.
 public static class Resources
 {
-    /// <summary>Gets or sets the active language. Defaults to English.</summary>
+    // Langue active au démarrage — modifiable à chaud via le menu console
     public static Language Current { get; set; } = Language.EN;
 
+    // Dictionnaire de toutes les chaînes localisées, indexées par clé puis par langue
     private static readonly Dictionary<string, Dictionary<Language, string>> _strings = new()
     {
         ["menu.title"] = new() { [Language.EN] = "=== EasySave ===", [Language.FR] = "=== EasySave ===" },
@@ -40,10 +39,8 @@ public static class Resources
         ["settings.format.invalid"] = new() { [Language.EN] = "Invalid format. Use 'json' or 'xml'.", [Language.FR] = "Format invalide. Utilisez 'json' ou 'xml'." },
     };
 
-    /// <summary>
-    /// Returns the localised string for <paramref name="key"/> in the active language.
-    /// Falls back to the key itself if not found.
-    /// </summary>
+    // Retourne la chaîne localisée pour la clé donnée dans la langue active.
+    // Retourne la clé elle-même si elle n'est pas trouvée — évite les plantages silencieux.
     public static string Get(string key) =>
         _strings.TryGetValue(key, out var map) && map.TryGetValue(Current, out var val)
             ? val

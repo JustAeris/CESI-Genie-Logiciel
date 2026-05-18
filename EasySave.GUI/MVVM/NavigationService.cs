@@ -1,26 +1,24 @@
 namespace EasySave.GUI.MVVM;
 
-/// <summary>
-/// Singleton service that manages which ViewModel is currently displayed.
-/// The MainWindow binds its content area to CurrentViewModel.
-/// </summary>
+// Singleton (GoF) — gère quel ViewModel est actuellement affiché dans la zone de contenu principale.
+// La fenêtre principale lie sa zone de contenu à CurrentViewModel via un DataTemplate.
 public class NavigationService : ViewModelBase
 {
     private static readonly Lazy<NavigationService> _instance = new(() => new NavigationService());
     public static NavigationService Instance => _instance.Value;
 
+    // ViewModel actuellement affiché — WPF sélectionne automatiquement la vue correspondante via DataTemplate
     private ViewModelBase? _currentViewModel;
 
-    /// <summary>The ViewModel currently displayed in the main content area.</summary>
     public ViewModelBase? CurrentViewModel
     {
         get => _currentViewModel;
-        set => SetField(ref _currentViewModel, value);
+        set => SetField(ref _currentViewModel, value); // notifie l'UI pour changer la vue affichée
     }
 
     private NavigationService() { }
 
-    /// <summary>Navigates to the given ViewModel.</summary>
+    // Remplace le ViewModel actuel — provoque immédiatement le changement de vue dans l'interface
     public void NavigateTo(ViewModelBase viewModel)
         => CurrentViewModel = viewModel;
 }

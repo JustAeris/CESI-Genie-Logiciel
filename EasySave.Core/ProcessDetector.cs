@@ -2,10 +2,11 @@ using System.Diagnostics;
 
 namespace EasySave.Core;
 
-// Concrete Strategy (GoF) — checks whether the configured business software is running.
-// Reads BusinessSoftwareName from AppConfig v2.0 (not yet in AppConfig v1.1, handled defensively).
+// Stratégie concrète (GoF) — vérifie si le logiciel métier configuré est en cours d'exécution.
+// Interroge la liste des processus Windows via System.Diagnostics.Process.
 public class ProcessDetector : IBusinessSoftwareDetector
 {
+    // Nom du processus à surveiller, sans extension (ex. "notepad" et non "notepad.exe")
     private readonly string _processName;
 
     public ProcessDetector(string processName)
@@ -13,7 +14,8 @@ public class ProcessDetector : IBusinessSoftwareDetector
         _processName = processName;
     }
 
-    // Returns false immediately if no process name is configured — safe no-op.
+    // Retourne false immédiatement si aucun nom n'est configuré — pas de recherche inutile.
+    // Retourne true si au moins un processus portant ce nom est actif.
     public bool IsRunning()
     {
         if (string.IsNullOrWhiteSpace(_processName))

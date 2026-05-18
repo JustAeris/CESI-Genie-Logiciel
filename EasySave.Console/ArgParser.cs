@@ -1,16 +1,13 @@
 namespace EasySave.Console;
 
-/// <summary>
-/// Parses command-line job-selection arguments into arrays of job indices.
-/// </summary>
+// Parse les arguments de ligne de commande pour sélectionner des jobs par index.
 public static class ArgParser
 {
-    /// <summary>
-    /// Parses a job-selection argument into 1-based job indices.
-    /// "1-3" → [1, 2, 3]   |   "1;3" → [1, 3]   |   "2" → [2]
-    /// </summary>
+    // Convertit un argument de sélection en tableau d'index 1-based.
+    // "1-3" → [1, 2, 3]   |   "1;3" → [1, 3]   |   "2" → [2]
     public static int[] Parse(string arg)
     {
+        // Format plage : "1-3" → développe en [1, 2, 3]
         if (arg.Contains('-'))
         {
             var parts = arg.Split('-', 2);
@@ -19,6 +16,7 @@ public static class ArgParser
             return Enumerable.Range(start, end - start + 1).ToArray();
         }
 
+        // Format liste : "1;3" → [1, 3] ; ou index simple : "2" → [2]
         return arg.Split(';')
                   .Select(s => int.Parse(s.Trim()))
                   .ToArray();

@@ -2,33 +2,32 @@ using System.Text.Json.Serialization;
 
 namespace EasyLog;
 
-/// <summary>
-/// Represents a single file-transfer record written to the daily JSON log.
-/// </summary>
+// Représente l'enregistrement d'un transfert de fichier écrit dans le log journalier.
+// Une entrée est créée par fichier copié, qu'il y ait eu chiffrement ou non.
 public class LogEntry
 {
-    /// <summary>Hostname of the machine that produced this entry.</summary>
+    // Nom de la machine qui a produit cette entrée (hostname Windows)
     public string Machine { get; set; } = Environment.MachineName;
 
-    /// <summary>Name of the backup job that produced this entry.</summary>
+    // Nom du job de sauvegarde qui a déclenché le transfert
     public string Name { get; set; } = "";
 
-    /// <summary>Absolute path of the source file.</summary>
+    // Chemin absolu du fichier source
     public string FileSource { get; set; } = "";
 
-    /// <summary>Absolute path of the destination file.</summary>
+    // Chemin absolu du fichier de destination
     public string FileTarget { get; set; } = "";
 
-    /// <summary>Size of the transferred file in bytes.</summary>
+    // Taille du fichier transféré en octets
     public long FileSize { get; set; }
 
-    /// <summary>Time taken to transfer the file, in milliseconds.</summary>
+    // Temps de transfert du fichier en millisecondes
     public double FileTransferTime { get; set; }
 
-    /// <summary>Timestamp of the transfer (format: yyyy-MM-dd HH:mm:ss).</summary>
+    // Horodatage du transfert au format "yyyy-MM-dd HH:mm:ss"
     [JsonPropertyName("time")]
     public string Timestamp { get; set; } = "";
 
-    /// <summary>Encryption duration in ms. 0 = no encryption, &gt;0 = success, &lt;0 = error.</summary>
+    // Durée du chiffrement en ms. 0 = pas de chiffrement, >0 = succès, <0 = erreur
     public long EncryptionTime { get; set; }
 }

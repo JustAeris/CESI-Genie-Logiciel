@@ -2,11 +2,13 @@ using System.Xml.Linq;
 
 namespace EasyLog;
 
-// Concrete Strategy (GoF) for XML serialization.
+// Stratégie concrète (GoF) — sérialisation au format XML.
 public class XmlLogSerializer : ILogSerializer
 {
+    // Retourne ".xml" pour que Logger nomme correctement le fichier de log du jour
     public string FileExtension => ".xml";
 
+    // Construit un document XML avec une racine <Logs> contenant un <LogEntry> par entrée
     public string Serialize(IEnumerable<LogEntry> entries)
     {
         var doc = new XDocument(
@@ -26,6 +28,7 @@ public class XmlLogSerializer : ILogSerializer
         return doc.ToString();
     }
 
+    // Parse tous les éléments <LogEntry> sous la racine ; retourne vide si la racine est absente
     public IEnumerable<LogEntry> Deserialize(string raw)
     {
         var doc = XDocument.Parse(raw);

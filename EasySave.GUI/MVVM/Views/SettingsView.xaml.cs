@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -13,9 +13,7 @@ using System.Windows.Shapes;
 
 namespace EasySave.GUI.MVVM.Views
 {
-    /// <summary>
-    /// Logique d'interaction pour SettingsView.xaml
-    /// </summary>
+    // Code-behind de la vue Paramètres — toute la logique est dans SettingsViewModel.
     public partial class SettingsView : UserControl
     {
         public SettingsView()
