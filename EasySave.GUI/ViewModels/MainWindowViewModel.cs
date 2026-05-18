@@ -16,13 +16,15 @@ public class MainWindowViewModel : ViewModelBase
     public RelayCommand NavigateToSettingsCommand { get; }
     public RelayCommand ToggleLanguageCommand { get; }
 
+    private readonly SettingsViewModel _settingsViewModel = new();
+
     public MainWindowViewModel()
     {
         NavigateToJobsCommand = new RelayCommand(_ =>
             Navigation.NavigateTo(new BackupJobsViewModel()));
 
         NavigateToSettingsCommand = new RelayCommand(_ =>
-            Navigation.NavigateTo(new SettingsViewModel()));
+            Navigation.NavigateTo(_settingsViewModel));
 
         ToggleLanguageCommand = new RelayCommand(_ =>
         {

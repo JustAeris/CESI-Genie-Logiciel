@@ -34,7 +34,7 @@
                 <ComboBox ItemsSource="{Binding LogFormats}"
                           SelectedItem="{Binding SelectedLogFormat}"
                           Width="150" HorizontalAlignment="Left"
-                          Background="#2A2A2A" Foreground="#F0F0F0"
+                          Background="#2A2A2A" Foreground="#0D0D0D"
                           BorderBrush="#F5D800" FontFamily="Consolas">
                     <ComboBox.Resources>
                         <Style TargetType="ComboBoxItem">
@@ -63,7 +63,7 @@
                 <ComboBox ItemsSource="{Binding LogDestinations}"
                           SelectedItem="{Binding SelectedLogDestination}"
                           Width="150" HorizontalAlignment="Left"
-                          Background="#2A2A2A" Foreground="#F0F0F0"
+                          Background="#2A2A2A" Foreground="#0D0D0D"
                           BorderBrush="#F5D800" FontFamily="Consolas">
                     <ComboBox.Resources>
                         <Style TargetType="ComboBoxItem">
