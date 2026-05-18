@@ -112,6 +112,7 @@ public class BackupJobsViewModel : ViewModelBase
             var job = dialog.Result;
             Jobs.Add(new JobViewModel(job));
             BackupManager.Instance.AddJob(job);
+            ConfigManager.Instance.Jobs.Add(job);
             ConfigManager.Instance.Save();
         }
     }
